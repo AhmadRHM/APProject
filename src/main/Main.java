@@ -25,5 +25,10 @@ public class Main {
 //        }
         EsqFrame esqFrame = new EsqFrame(mainFrame);
         mainFrame.setEsqFrame(esqFrame);
+
+        Random random = new Random(System.currentTimeMillis());
+        for(int i=1; i<=40; i++)
+            if(Math.abs(random.nextInt()) % 20 == 0)
+                System.out.println("ye bar shod hala");
     }
 }

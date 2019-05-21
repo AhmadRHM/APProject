@@ -24,6 +24,7 @@ public class Shuttle implements Drawable {
     private MainFrame mainFrame;
     private int mainPanelWidth, mainPanelHeight;
     private BufferedImage shuttleImage;
+    private int maxDegree = 100;
     public Shuttle(int type, Assets assets, MainFrame mainFrame, int fireType, int firePower){
         this.assets = assets;
         this.x = mainFrame.getMainPanel().getSize().width / 2;
@@ -45,7 +46,7 @@ public class Shuttle implements Drawable {
     }
     @Override
     public void update(double time) {
-        if(temperature >= 100)
+        if(temperature >= maxDegree)
             overHeated = true;
         temperature -= 25 * time;
         temperature = Math.max(temperature, 0);
@@ -108,23 +109,37 @@ public class Shuttle implements Drawable {
     }
     public void fire(){
         //TODO
-        if(System.currentTimeMillis() % 1000 < 100)
-            System.out.println("temp : " + temperature);
-//        System.out.println("firing");
+//        if(System.currentTimeMillis() % 1000 < 100)
+//            System.out.println("temp : " + temperature);
         if(overHeated || System.currentTimeMillis() - lastTimeFired < coolDownBetweenFires) {
             return;
         }
-
+        //Firing
         lastTimeFired = System.currentTimeMillis();
         temperature += 8;
 
-        if(fireType == 1 || fireType == 2){
-//            System.out.println("fire power is " + firePower);
-            for(int i=1; i<=firePower; i++){
-                mainFrame.getItems().add(new Tir(x, y - height/2, -1 * (100 * i / firePower), -400, fireType, assets));
-                mainFrame.getItems().add(new Tir(x, y - height/2, 100 * i / firePower, -400, fireType, assets));
-            }
-            mainFrame.getItems().add(new Tir(x, y - height/2, 0, -400, fireType, assets));
+//        if(fireType == 1 || fireType == 2){
+////            System.out.println("fire power is " + firePower);
+//            for(int i=1; i<=firePower; i++){
+//                mainFrame.getItems().add(new Tir(x, y - height/2, -1 * (100 * i / firePower), -400, fireType, assets));
+//                mainFrame.getItems().add(new Tir(x, y - height/2, 100 * i / firePower, -400, fireType, assets));
+//            }
+//            mainFrame.getItems().add(new Tir(x, y - height/2, 0, -400, fireType, assets));
+//        }
+        if(firePower == 1){
+            mainFrame.getItems().add(new Tir(x, y-height/2, 0, -400, fireType, 0, assets));
+        }else if(firePower == 2){
+            mainFrame.getItems().add(new Tir(x+10, y-height/2, 0, -400, fireType, 0, assets));
+            mainFrame.getItems().add(new Tir(x-10, y-height/2, 0, -400, fireType, 0, assets));
+        }else if(firePower == 3){
+            mainFrame.getItems().add(new Tir(x, y-height/2, 0, -400, fireType, 0, assets));
+            mainFrame.getItems().add(new Tir(x+10, y-height/2, 100, -400, fireType, 5, assets));
+            mainFrame.getItems().add(new Tir(x-10, y-height/2, -100, -400, fireType, -5, assets));
+        }else if(firePower == 4){
+            mainFrame.getItems().add(new Tir(x+10, y-height/2, 0, -400, fireType, 0, assets));
+            mainFrame.getItems().add(new Tir(x-10, y-height/2, 0, -400, fireType, 0, assets));
+            mainFrame.getItems().add(new Tir(x+20, y-height/2, 100, -400, fireType, 10, assets));
+            mainFrame.getItems().add(new Tir(x-20, y-height/2, -100, -400, fireType, -10, assets));
         }
     }
     public double getTemperature(){
@@ -137,6 +152,14 @@ public class Shuttle implements Drawable {
         //TODO
         System.out.println("Shooting rocket");
         mainFrame.getItems().add(new Rocket(assets.getRocket(), (800 - x)/2, (500 - y)/2, x, y, mainFrame));
+    }
+
+    public int getMaxDegree() {
+        return maxDegree;
+    }
+
+    public void setMaxDegree(int maxDegree) {
+        this.maxDegree = maxDegree;
     }
 }
 

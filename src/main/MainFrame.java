@@ -1,6 +1,8 @@
 package main;
 
 import assets.Assets;
+import chickenGroups.Chicken;
+import chickenGroups.Egg;
 import shuttles.DataBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
@@ -74,27 +76,25 @@ public class MainFrame extends JFrame {
                     while (true) {
                         mainPanel.setYOfBackground((int)(2.5*backgroundSpeed));
 
-//                        items.addUsing();
                         if(mainPanel.isInGameMode()) {
                             try {
-//                            if(!items.isChanging())
                                 for (Drawable drawable : items.getItems()) {
                                     drawable.update(0.005);
+
+                                    //deleting bad items
                                     if (drawable instanceof Tir) {
-                                        if (((Tir) drawable).getY() < 0)
+                                        if (((Tir) drawable).remove())
                                             items.remove(drawable);
-                                    }
-//                            items.add(null);
+                                    }else if(drawable instanceof Egg)
+                                        if(((Egg) drawable).remove())
+                                            items.remove(drawable);
                                 }
                             } catch (ConcurrentModificationException e) {
-//                            System.out.println("concurrent dad " + items.getUsing());
                                 e.printStackTrace();
                             }
-//                        items.deleteUsing();
                         }
                         mainPanel.revalidate();
                         mainPanel.repaint();
-//                        System.out.println(items.size() + " hahaha ");
                         animationThread.sleep(5);
                     }
                 }catch (InterruptedException e){
@@ -158,6 +158,8 @@ public class MainFrame extends JFrame {
         items.add(mainPanel.getShuttle());
         items.add(new DataBar(this));
 
+//        items.add(new Chicken(500, 500, 20, 0, 1, assets.getChicken(1, 1), this));
+
         //mouse listeners
         mainPanel.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -178,7 +180,7 @@ public class MainFrame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                mainPanel.getShuttle().fire();
+//                mainPanel.getShuttle().fire();
             }
 
             @Override
@@ -192,21 +194,27 @@ public class MainFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                if(e.getKeyChar() == 'a'  || e.getKeyCode() == 37)
+                if (e.getKeyChar() == 'a' || e.getKeyCode() == 37)
                     mainPanel.getShuttle().toLeft();
-                if(e.getKeyChar() == 's' || e.getKeyCode() == 40)
+                if (e.getKeyChar() == 's' || e.getKeyCode() == 40)
                     mainPanel.getShuttle().toDown();
-                if(e.getKeyChar() == 'd' || e.getKeyCode() == 39)
+                if (e.getKeyChar() == 'd' || e.getKeyCode() == 39)
                     mainPanel.getShuttle().toRight();
-                if(e.getKeyChar() == 'w' || e.getKeyCode() == 38)
+                if (e.getKeyChar() == 'w' || e.getKeyCode() == 38)
                     mainPanel.getShuttle().toUp();
-                if(e.getKeyChar() == ' ')
-                    mainPanel.getShuttle().fire();
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
                 super.keyReleased(e);
+            }
+        });
+        mainPanel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                if(e.getKeyChar() == ' ')
+                    mainPanel.getShuttle().fire();
             }
         });
     }

@@ -37,9 +37,14 @@ public class Assets {
     //mini images for data
     private BufferedImage heart, rocketLogo, meat;
 
+    //Chicken images
+    private BufferedImage egg;
+    private BufferedImage[][] chickens;
+
     public Assets(){
         this.shuttle = new BufferedImage[4];
         this.fire = new BufferedImage[4];
+        this.chickens = new BufferedImage[4][14];
     }
 
     public BufferedImage getBackgroundImage() {
@@ -518,5 +523,35 @@ public class Assets {
         if(rocketLogo == null)
             setRocketLogo();
         return rocketLogo;
+    }
+
+    public BufferedImage getEgg() {
+        if(egg == null) {
+            setEgg();
+        }
+        return egg;
+    }
+
+    private void setEgg() {
+        try {
+            egg = ImageIO.read(new File("assets/egg.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public BufferedImage getChicken(int type, int frame){
+        if(chickens[type][frame] == null){
+            setChicken(type, frame);
+        }
+        return chickens[type][frame];
+    }
+    private void setChicken(int type, int frame){
+        System.out.println("dishdiri didin mashala");
+        try {
+            chickens[type][frame] = ImageIO.read(new File("assets/chicken"+type+"_"+frame+".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

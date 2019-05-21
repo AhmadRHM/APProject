@@ -13,12 +13,13 @@ public class Tir implements Drawable {
     private int type;
     private BufferedImage tir;
     private Assets assets;
-    public Tir(double x, double y, double vx, double vy, int type, Assets assets){
+    public Tir(double x, double y, double vx, double vy, int type, int degree, Assets assets){
         this.x = x;
         this.y = y;
 
         this.vx = vx;
         this.vy = vy;
+
 
         this.type = type;
         this.assets = assets;
@@ -26,7 +27,9 @@ public class Tir implements Drawable {
         tir = assets.getFire(type);
 
         AffineTransform tx = new AffineTransform();
-        tx.rotate(Math.atan2(vy, vx) + Math.PI/2, tir.getWidth() / 2, tir.getHeight() / 2);
+        double deg = Math.toRadians(degree);
+        this.vx = Math.tan(deg) * 400;
+        tx.rotate(deg , tir.getWidth() / 2, tir.getHeight() / 2);
 
         AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
 
@@ -47,5 +50,8 @@ public class Tir implements Drawable {
     public double getX(){ return x; }
     public double getY() {
         return y;
+    }
+    public boolean remove(){
+        return ((int)(y + tir.getHeight()/2) < 0);
     }
 }

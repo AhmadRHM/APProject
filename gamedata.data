@@ -9,8 +9,8 @@
     "rockets": 3,
     "money": 0,
     "shuttleType": 1,
-    "fireType": 2,
-    "firePower": 2
+    "fireType": 1,
+    "firePower": 3
   },
   {
     "username": "rahim",
