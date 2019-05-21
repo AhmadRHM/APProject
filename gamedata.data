@@ -1,0 +1,80 @@
+[
+  {
+    "username": "ahmad",
+    "id": 0,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 3,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 2,
+    "firePower": 2
+  },
+  {
+    "username": "rahim",
+    "id": 1,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 3,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 1,
+    "firePower": 0
+  },
+  {
+    "username": "ali",
+    "id": 2,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 2,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 1,
+    "firePower": 0
+  },
+  {
+    "username": "fifi",
+    "id": 3,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 3,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 1,
+    "firePower": 1
+  },
+  {
+    "username": "kiana",
+    "id": 4,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 3,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 1,
+    "firePower": 1
+  },
+  {
+    "username": "matin",
+    "id": 5,
+    "hasSavedGame": true,
+    "score": 0,
+    "lastLevel": 0,
+    "lives": 5,
+    "rockets": 3,
+    "money": 0,
+    "shuttleType": 1,
+    "fireType": 1,
+    "firePower": 1
+  }
+]
