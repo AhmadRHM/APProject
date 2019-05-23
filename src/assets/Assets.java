@@ -547,10 +547,11 @@ public class Assets {
         return chickens[type][frame];
     }
     private void setChicken(int type, int frame){
-        System.out.println("dishdiri didin mashala");
+//        System.out.println("dishdiri didin mashala");
         try {
             chickens[type][frame] = ImageIO.read(new File("assets/chicken"+type+"_"+frame+".png"));
         } catch (IOException e) {
+            System.out.println("Failed to load : assets/chicken"+type+"_"+frame+".png");
             e.printStackTrace();
         }
     }

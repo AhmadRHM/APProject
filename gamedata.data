@@ -5,12 +5,12 @@
     "hasSavedGame": true,
     "score": 0,
     "lastLevel": 0,
-    "lives": 5,
+    "lives": 0,
     "rockets": 3,
     "money": 0,
     "shuttleType": 1,
     "fireType": 1,
-    "firePower": 3
+    "firePower": 1
   },
   {
     "username": "rahim",

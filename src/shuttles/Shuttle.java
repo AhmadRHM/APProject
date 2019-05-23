@@ -25,6 +25,9 @@ public class Shuttle implements Drawable {
     private int mainPanelWidth, mainPanelHeight;
     private BufferedImage shuttleImage;
     private int maxDegree = 100;
+    private boolean isDead = false;
+    private long deathTime;
+
     public Shuttle(int type, Assets assets, MainFrame mainFrame, int fireType, int firePower){
         this.assets = assets;
         this.x = mainFrame.getMainPanel().getSize().width / 2;
@@ -46,6 +49,9 @@ public class Shuttle implements Drawable {
     }
     @Override
     public void update(double time) {
+        if(isDead && System.currentTimeMillis() - deathTime >= 5000){
+            isDead = false;
+        }
         if(temperature >= maxDegree)
             overHeated = true;
         temperature -= 25 * time;
@@ -57,7 +63,8 @@ public class Shuttle implements Drawable {
 
     @Override
     public void draw(Graphics2D g) {
-        g.drawImage(shuttleImage, x - width/2, y - height/2 , null);
+        if(!isDead)
+            g.drawImage(shuttleImage, x - width/2, y - height/2 , null);
 //        g.setColor(Color.BLACK);
 //        g.fillOval(x, y, 10, 10);
     }
@@ -111,7 +118,7 @@ public class Shuttle implements Drawable {
         //TODO
 //        if(System.currentTimeMillis() % 1000 < 100)
 //            System.out.println("temp : " + temperature);
-        if(overHeated || System.currentTimeMillis() - lastTimeFired < coolDownBetweenFires) {
+        if(isDead || overHeated || System.currentTimeMillis() - lastTimeFired < coolDownBetweenFires) {
             return;
         }
         //Firing
@@ -161,5 +168,14 @@ public class Shuttle implements Drawable {
     public void setMaxDegree(int maxDegree) {
         this.maxDegree = maxDegree;
     }
+
+    public void dead(){
+        isDead = true;
+        deathTime = System.currentTimeMillis();
+    }
+
+    public Dimension getSize(){return new Dimension(shuttleImage.getWidth(), shuttleImage.getHeight());}
+
+    public boolean isDead(){return  isDead;}
 }
 

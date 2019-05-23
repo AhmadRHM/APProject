@@ -11,52 +11,46 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public class Chicken implements Drawable {
-    private Random random = new Random(System.currentTimeMillis());
+    private Random random;
     private double x, y, vx, vy;
     private int type;
     private double nextX, nextY;
-    BufferedImage image;
+    private BufferedImage image;
     private double percentOfHatching;
     private double life;
     private double eggSpeed;
     private MainFrame mainFrame;
     private double timeMod1 = 0;
+    private int frame = 0, frame0;
+    private double degree = 0;
+    private double speed = 300;
 
     private void fillTypeNumbers(){
         if(type == 1){
             percentOfHatching = 0.05;
             life = 2;
-            eggSpeed = 50;
+            eggSpeed = 100;
         }else if(type == 2){
             percentOfHatching = 0.05;
             life = 3;
-            eggSpeed = 50;
+            eggSpeed = 100;
         }else if(type == 3){
             percentOfHatching = 0.1;
             life = 5;
-            eggSpeed = 100;
+            eggSpeed = 200;
         }else if(type == 4){
             percentOfHatching = 0.2;
             life = 8;
-            eggSpeed = 100;
+            eggSpeed = 200;
         }
     }
 
-    public Chicken(double x, double y, double vx, double vy, int type, BufferedImage image, MainFrame mainFrame){
-        this.x = x;
-        this.y = y;
-
-        this.type = type;
-
+    public Chicken(double x, double y, double vx, double vy, int type, int seed, int frame, MainFrame mainFrame){
+        this(x, y, type, seed, frame, mainFrame);
         this.vx = vx;
         this.vy = vy;
-
-        this.image = image;
-        fillTypeNumbers();
-
-        this.mainFrame = mainFrame;
     }
-    public Chicken(double x, double y, int type, BufferedImage image, MainFrame mainFrame){
+    public Chicken(double x, double y, int type, int seed, int frame, MainFrame mainFrame){
         this.x = x;
         this.y = y;
 
@@ -65,25 +59,24 @@ public class Chicken implements Drawable {
 
         this.type = type;
 
-        this.image = image;
+        this.frame0 = frame;
+        System.out.println(frame);
+
+        image = mainFrame.getAssets().getChicken(type, frame);
+
         fillTypeNumbers();
 
         this.mainFrame = mainFrame;
+
+        random = new Random(seed);
     }
-    public Chicken(double x, double y, double vx, double vy, int type, double degree, BufferedImage image, MainFrame mainFrame){
-        this.x = x;
-        this.y = y;
+    public Chicken(double x, double y, double vx, double vy, int type, int seed, double degree, int frame, MainFrame mainFrame){
+        this(x, y, vx, vy, type, seed, frame, mainFrame);
 
-        this.vx = vx;
-        this.vy = vy;
-
-        this.type = type;
-
-        this.image = image;
+        this.degree = degree;
         rotateImage(degree);
         fillTypeNumbers();
 
-        this.mainFrame = mainFrame;
     }
     public void rotateImage(double degree){
         AffineTransform tx = new AffineTransform();
@@ -92,7 +85,7 @@ public class Chicken implements Drawable {
         AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
         this.image  = op.filter(image, null);
     }
-    void setNext(double nextX, double nextY){
+    public void setNext(double nextX, double nextY){
         this.nextX = nextX;
         this.nextY = nextY;
 
@@ -100,31 +93,47 @@ public class Chicken implements Drawable {
         double dy = nextY - y;
         double d = Math.sqrt(dx*dx + dy*dy);
 
-        this.vx = dx / d * 100;
-        this.vy = dy / d * 100;
+        this.vx = dx / d * speed;
+        this.vy = dy / d * speed;
     }
 
     @Override
     public void update(double time) {
         x += vx * time;
         y += vy * time;
+        if(x == nextX)
+            vx = 0;
+        if(y == nextY)
+            vy = 0;
 ////        System.out.println(m);
 //        if (Math.abs(random.nextInt()) % 20000 <= 10)
 //            this.throwEgg();
         this.timeMod1 += time;
         if(timeMod1 > 1){
             timeMod1 -= 1;
+            //egg throwing
             double mod = (double)1 / percentOfHatching;
             int m = (int) Math.floor(mod);
-            System.out.println(m);
+//            System.out.println(m);
             if(Math.abs(random.nextInt()) % m == 0){
                 this.throwEgg();
             }
         }
+        //changing mode
+//        frame++;
+        int lastFrame = frame;
+        frame = frame0 + (int)(timeMod1 * 26);
+        frame %= 13;
+        if(lastFrame != frame) {
+            if (frame < 7)
+                image = mainFrame.getAssets().getChicken(type, frame);
+            else
+                image = mainFrame.getAssets().getChicken(type, 12 - frame);
+            rotateImage(degree);
+        }
     }
 
     private void throwEgg(){
-        //TODO
         mainFrame.getItems().add(new Egg(x, y, 0, eggSpeed, mainFrame.getAssets().getEgg()));
     }
 
@@ -140,10 +149,23 @@ public class Chicken implements Drawable {
     public double getNextX() {
         return nextX;
     }
-    public void reduceLives(int damage){
+    public void reduceLives(double damage){
         life -= damage;
     }
     public double getLife(){
         return life;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+    public Dimension getSize(){
+        return new Dimension(image.getWidth(), image.getHeight());
+    }
+    public double getX(){return x;}
+    public double getY(){return y;}
+
+    public void killed(){
+        //TODO
     }
 }

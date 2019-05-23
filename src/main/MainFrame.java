@@ -2,7 +2,9 @@ package main;
 
 import assets.Assets;
 import chickenGroups.Chicken;
+import chickenGroups.ChickenGroup;
 import chickenGroups.Egg;
+import chickenGroups.RectangleGroup;
 import shuttles.DataBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
@@ -18,7 +20,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 
 public class MainFrame extends JFrame {
     private int width = 1600, height = 1000;
@@ -29,11 +31,13 @@ public class MainFrame extends JFrame {
     private User user;
     private EsqFrame esqFrame;
     private Items items;
-    MainFrame(){
+
+    MainFrame() {
         super();
         init();
     }
-    private void init(){
+
+    private void init() {
         this.setTitle("Chicken Invaders AhmadRH Edition :D");
 
         this.setSize(new Dimension(width, height));
@@ -61,60 +65,120 @@ public class MainFrame extends JFrame {
         items = new Items();
 //        removeList = new ArrayList<>();
     }
-    public void setBackgroundSpeed(double backgroundSpeed){
+
+    public void setBackgroundSpeed(double backgroundSpeed) {
         this.backgroundSpeed = backgroundSpeed;
     }
+
     public Assets getAssets() {
         return assets;
     }
+
     private Thread animationThread;
-    private void initAnimationThread(){
+
+    private void initAnimationThread() {
         animationThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
-                        mainPanel.setYOfBackground((int)(2.5*backgroundSpeed));
+                        mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed));
 
-                        if(mainPanel.isInGameMode()) {
-                            try {
-                                for (Drawable drawable : items.getItems()) {
-                                    drawable.update(0.005);
-
-                                    //deleting bad items
-                                    if (drawable instanceof Tir) {
-                                        if (((Tir) drawable).remove())
-                                            items.remove(drawable);
-                                    }else if(drawable instanceof Egg)
-                                        if(((Egg) drawable).remove())
-                                            items.remove(drawable);
+                        if (mainPanel.isInGameMode()) {
+                            //deleting bad items
+                            for (Drawable drawable : items.getItems()) {
+                                if (drawable instanceof Tir) {
+                                    if (((Tir) drawable).remove())
+                                        items.remove(drawable);
+                                } else if (drawable instanceof Egg) {
+                                    if (((Egg) drawable).remove())
+                                        items.remove(drawable);
+                                } else if (drawable instanceof ChickenGroup) {
+                                    if (((ChickenGroup) drawable).getChickens().size() == 0)
+                                        items.remove(drawable);
                                 }
-                            } catch (ConcurrentModificationException e) {
-                                e.printStackTrace();
+                            }
+
+                            //Update
+                            for (Drawable drawable : items.getItems()) {
+                                drawable.update(0.005);
+                            }
+
+
+                            //killing things! :D
+                            Iterator<Drawable> chickenGroupIterator = items.getItems().iterator();
+                            for (Drawable drawable : items.getItems()) {
+                                if (drawable instanceof ChickenGroup) {
+
+                                    ChickenGroup chickenGroup = (ChickenGroup) drawable;
+                                    synchronized (chickenGroup.getChickens()) {
+                                        Iterator<Chicken> chickenIterator = chickenGroup.getChickens().iterator();
+                                        while (chickenIterator.hasNext()) {
+                                            Chicken chicken = chickenIterator.next();
+                                            boolean shouldTheChickenDie = false;
+                                            //death of chickens
+                                            for (Drawable drwbl : items.getItems()) {
+                                                if (drwbl instanceof Tir) {
+                                                    Tir tir = (Tir) drwbl;
+                                                    if (isIn(chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height, tir.getX(), tir.getY(), tir.getSize().width, tir.getSize().height)) {
+                                                        chicken.reduceLives(tir.getPower());
+                                                        items.remove(tir);
+                                                        if (chicken.getLife() <= 0) {
+                                                            chicken.killed();
+                                                            shouldTheChickenDie = true;
+//                                                            chickenIterator.remove();
+//                                                            drawableIterator.remove();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            //death of shuttle
+                                            Shuttle shuttle = mainPanel.getShuttle();
+                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
+//                                                chickenIterator.remove();
+                                                shouldTheChickenDie = true;
+                                                shuttle.dead();
+                                                shuttleDied();
+                                            }
+                                            if(shouldTheChickenDie)
+                                                chickenIterator.remove();
+                                        }
+                                    }
+                                } else if (drawable instanceof Egg) {
+                                    Egg egg = (Egg) drawable;
+                                    Shuttle shuttle = mainPanel.getShuttle();
+                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
+                                        shuttleDied();
+                                        shuttle.dead();
+                                        items.remove(drawable);
+                                    }
+                                }
                             }
                         }
                         mainPanel.revalidate();
                         mainPanel.repaint();
                         animationThread.sleep(5);
                     }
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
     }
-    public void startAnimation(){
-        if(animationThread == null)
+
+    public void startAnimation() {
+        if (animationThread == null)
             initAnimationThread();
         animationThread.start();
     }
-    public void stopAnimation(){
-        if(animationThread != null){
+
+    public void stopAnimation() {
+        if (animationThread != null) {
             animationThread.stop();
         }
     }
 
-    public void userSelected(String user){
+    public void userSelected(String user) {
         //TODO fill this shit :D
         System.out.println("User " + user + " is selected! :))");
     }
@@ -123,7 +187,7 @@ public class MainFrame extends JFrame {
         return users;
     }
 
-    private void initForUserSelection(){
+    private void initForUserSelection() {
         mainPanel.setLayout(new BorderLayout());
         UsersPanel usersPanel = new UsersPanel(this);
         mainPanel.setUsersPanel(usersPanel);
@@ -134,7 +198,7 @@ public class MainFrame extends JFrame {
         mainPanel.add(menuPanel, BorderLayout.SOUTH);
     }
 
-    public void initForStartGameMenu(){
+    public void initForStartGameMenu() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -147,7 +211,11 @@ public class MainFrame extends JFrame {
         mainPanel.add(Box.createGlue());
     }
 
-    public void initForGame(){
+    private boolean isIn(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2) {
+        return !((x1 + w1 / 2 < x2 - w2 / 2) || (x2 + w2 / 2 < x1 - w1 / 2) || (y1 + h1 / 2 < y2 - h2 / 2) || (y2 + h2 / 2 < y1 - h1 / 2));
+    }
+
+    public void initForGame() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -158,7 +226,11 @@ public class MainFrame extends JFrame {
         items.add(mainPanel.getShuttle());
         items.add(new DataBar(this));
 
-//        items.add(new Chicken(500, 500, 20, 0, 1, assets.getChicken(1, 1), this));
+//        Chicken c = new Chicken(500, 500, 20, 0, 1, assets.getChicken(1, 0), this);
+//        items.add(c);
+//        c.setNext(1000, 500 );
+
+        items.add(new RectangleGroup(40, 1, this));
 
         //mouse listeners
         mainPanel.addMouseMotionListener(new MouseAdapter() {
@@ -213,11 +285,12 @@ public class MainFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                if(e.getKeyChar() == ' ')
+                if (e.getKeyChar() == ' ')
                     mainPanel.getShuttle().fire();
             }
         });
     }
+
     public MainPanel getMainPanel() {
         return mainPanel;
     }
@@ -246,8 +319,20 @@ public class MainFrame extends JFrame {
         System.out.println("saving");
         users.save();
     }
-    public void rocketBoomed(){
+
+    public void rocketBoomed() {
         //TODO
         System.out.println("rocket Boomeddd...!! :D");
+    }
+
+    public void shuttleDied() {
+        user.setLives(user.getLives() - 1);
+        if (user.getLives() == 0)
+            endGame();
+    }
+
+    public void endGame() {
+        //TODO
+        System.out.println("game ended");
     }
 }
