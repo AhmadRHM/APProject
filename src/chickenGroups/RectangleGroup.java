@@ -9,9 +9,10 @@ import java.util.Random;
 
 public class RectangleGroup extends ChickenGroup {
     private MainFrame mainFrame;
-    private double x, y, vx = 60;
     public RectangleGroup(int numberOfChickens, int type, MainFrame mainFrame){
         this.mainFrame = mainFrame;
+        vx = 60;
+        vy = 0;
         Random random = new Random(System.currentTimeMillis());
         synchronized (chickens) {
             for (int i = 0; i < numberOfChickens; i++) {
@@ -34,7 +35,7 @@ public class RectangleGroup extends ChickenGroup {
     }
     @Override
     public void update(double time) {
-        x += vx * time;
+        super.update(time);
         synchronized (chickens) {
             int cols = getNumberOfCols();
             if (x < 0 || x + cols * chickens.get(0).getSize().width > 1600)

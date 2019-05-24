@@ -8,10 +8,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
-public class Tir implements Drawable {
-    private  double x, y, vx, vy, power = 1;
+public class Tir extends Drawable {
+    private  double power = 1;
     private int type;
-    private BufferedImage image;
     private Assets assets;
 
     public Tir(double x, double y, double vx, double vy, int type, int degree, double power, Assets assets){
@@ -40,27 +39,8 @@ public class Tir implements Drawable {
 
         image = op.filter(image, null);
     }
-
-    @Override
-    public void update(double time) {
-        x += vx * time;
-        y += vy * time;
-    }
-
-    @Override
-    public void draw(Graphics2D g) {
-        g.drawImage(image, (int)x - image.getWidth()/2, (int)y - image.getHeight()/2, null);
-    }
-
-    public double getX(){ return x; }
-    public double getY() {
-        return y;
-    }
     public boolean remove(){
         return ((int)(y + image.getHeight()/2) < 0);
-    }
-    public Dimension getSize(){
-        return new Dimension(image.getWidth(), image.getHeight());
     }
 
     public double getPower() {

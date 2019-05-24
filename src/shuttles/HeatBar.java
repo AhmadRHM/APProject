@@ -4,7 +4,7 @@ import main.Drawable;
 
 import java.awt.*;
 
-public class HeatBar implements Drawable {
+public class HeatBar extends Drawable {
     private Shuttle shuttle;
     private int tmp;
     private final int width = 20, height = 40;
@@ -14,7 +14,7 @@ public class HeatBar implements Drawable {
 
     @Override
     public void update(double time) {
-        tmp = (int)(shuttle.getTemperature()/10);
+        tmp = (int)(shuttle.getTemperature() * 10 / shuttle.getMaxDegree());
     }
 
     @Override

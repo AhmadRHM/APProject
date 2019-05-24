@@ -8,7 +8,7 @@ import users.User;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class DataBar implements Drawable {
+public class DataBar extends Drawable {
     private User user;
     private BufferedImage heart, rocket, meat;
     private MainFrame mainFrame;
@@ -19,10 +19,6 @@ public class DataBar implements Drawable {
         heart = assets.getHeart();
         rocket = assets.getRocketLogo();
         meat = assets.getMeat();
-    }
-    @Override
-    public void update(double time) {
-
     }
 
     @Override

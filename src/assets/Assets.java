@@ -41,10 +41,16 @@ public class Assets {
     private BufferedImage egg;
     private BufferedImage[][] chickens;
 
+    //booster images
+    private BufferedImage maxTempBooster;
+    private  BufferedImage tirBooster;
+    private BufferedImage[] tirChanger;
+
     public Assets(){
         this.shuttle = new BufferedImage[4];
         this.fire = new BufferedImage[4];
         this.chickens = new BufferedImage[4][14];
+        this.tirChanger = new BufferedImage[3];
     }
 
     public BufferedImage getBackgroundImage() {
@@ -555,4 +561,44 @@ public class Assets {
             e.printStackTrace();
         }
     }
+
+    private void setMaxTempBooster(){
+        try {
+            maxTempBooster = ImageIO.read(new File("assets/maxTempBooster.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getMaxTempBooster(){
+        if(maxTempBooster == null)
+            setMaxTempBooster();
+        return maxTempBooster;
+    }
+
+    private void setTirBooster(){
+        try {
+            tirBooster = ImageIO.read(new File("assets/tirBooster.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getTirBooster(){
+        if(tirBooster == null)
+            setTirBooster();
+        return tirBooster;
+    }
+
+    private void setTirChanger(int type){
+        try {
+            tirChanger[type] = ImageIO.read(new File("assets/tirChanger"+type+".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getTirChanger(int type){
+        if(tirChanger[type] == null)
+            setTirChanger(type);
+        return tirChanger[type];
+    }
+
 }

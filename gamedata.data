@@ -5,7 +5,7 @@
     "hasSavedGame": true,
     "score": 0,
     "lastLevel": 0,
-    "lives": 0,
+    "lives": 5,
     "rockets": 3,
     "money": 0,
     "shuttleType": 1,

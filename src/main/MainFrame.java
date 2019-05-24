@@ -1,10 +1,7 @@
 package main;
 
 import assets.Assets;
-import chickenGroups.Chicken;
-import chickenGroups.ChickenGroup;
-import chickenGroups.Egg;
-import chickenGroups.RectangleGroup;
+import chickenGroups.*;
 import shuttles.DataBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
@@ -98,12 +95,12 @@ public class MainFrame extends JFrame {
                                         items.remove(drawable);
                                 }
                             }
-
+//                            System.out.println("killing bad items finished");
                             //Update
                             for (Drawable drawable : items.getItems()) {
                                 drawable.update(0.005);
                             }
-
+//                            System.out.println("updating finished");
 
                             //killing things! :D
                             Iterator<Drawable> chickenGroupIterator = items.getItems().iterator();
@@ -120,7 +117,8 @@ public class MainFrame extends JFrame {
                                             for (Drawable drwbl : items.getItems()) {
                                                 if (drwbl instanceof Tir) {
                                                     Tir tir = (Tir) drwbl;
-                                                    if (isIn(chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height, tir.getX(), tir.getY(), tir.getSize().width, tir.getSize().height)) {
+//                                                    if (isIn(chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height, tir.getX(), tir.getY(), tir.getSize().width, tir.getSize().height)) {
+                                                    if (conflict(chicken, tir)) {
                                                         chicken.reduceLives(tir.getPower());
                                                         items.remove(tir);
                                                         if (chicken.getLife() <= 0) {
@@ -134,25 +132,51 @@ public class MainFrame extends JFrame {
                                             }
                                             //death of shuttle
                                             Shuttle shuttle = mainPanel.getShuttle();
-                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
+//                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
+                                            if (!shuttle.isDead() && conflict(shuttle, chicken)) {
 //                                                chickenIterator.remove();
                                                 shouldTheChickenDie = true;
                                                 shuttle.dead();
                                                 shuttleDied();
                                             }
-                                            if(shouldTheChickenDie)
+                                            if (shouldTheChickenDie)
                                                 chickenIterator.remove();
                                         }
                                     }
                                 } else if (drawable instanceof Egg) {
                                     Egg egg = (Egg) drawable;
                                     Shuttle shuttle = mainPanel.getShuttle();
-                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
+//                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
+                                    if (!shuttle.isDead() && conflict(shuttle, egg)) {
                                         shuttleDied();
                                         shuttle.dead();
                                         items.remove(drawable);
                                     }
                                 }
+                            }
+//                            System.out.println("killing things finished");
+                            //getting boosters
+                            try {
+                                Shuttle shuttle = mainPanel.getShuttle();
+                                if (shuttle != null && !shuttle.isDead()) {
+                                    for (Drawable drawable : items.getItems()) {
+                                        if (drawable.hasImage() && conflict(shuttle, drawable)) {
+                                            if (drawable instanceof MaxTempBooster) {
+                                                shuttle.setMaxDegree(shuttle.getMaxDegree() + 5);
+                                                items.remove(drawable);
+                                            } else if (drawable instanceof TirBooster) {
+                                                shuttle.setFirePower(shuttle.getFirePower() + 1);
+                                                items.remove(drawable);
+                                            } else if (drawable instanceof TirChanger) {
+                                                shuttle.changeTir(((TirChanger) drawable).getType());
+                                                items.remove(drawable);
+                                            }
+                                        }
+                                    }
+                                }
+                            }catch (Exception e){
+
+                                e.printStackTrace();
                             }
                         }
                         mainPanel.revalidate();
@@ -211,6 +235,9 @@ public class MainFrame extends JFrame {
         mainPanel.add(Box.createGlue());
     }
 
+    private boolean conflict(Drawable a, Drawable b){
+        return  isIn(a.getX(), a.getY(), a.getSize().width, a.getSize().height, b.getX(), b.getY(), b.getSize().width, b.getSize().height);
+    }
     private boolean isIn(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2) {
         return !((x1 + w1 / 2 < x2 - w2 / 2) || (x2 + w2 / 2 < x1 - w1 / 2) || (y1 + h1 / 2 < y2 - h2 / 2) || (y2 + h2 / 2 < y1 - h1 / 2));
     }

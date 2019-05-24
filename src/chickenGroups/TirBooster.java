@@ -5,8 +5,8 @@ import main.Drawable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Egg extends Drawable {
-    public Egg(double x, double y, double vx, double vy, BufferedImage image){
+public class TirBooster extends Drawable {
+    public TirBooster(double x, double y, double vx, double vy, BufferedImage image){
         this.x = x;
         this.y = y;
 
@@ -14,9 +14,5 @@ public class Egg extends Drawable {
         this.vy = vy;
 
         this.image = image;
-    }
-
-    public boolean remove(){
-        return ((int) (y - image.getHeight() / 2) > 1000);
     }
 }

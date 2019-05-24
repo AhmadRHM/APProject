@@ -3,6 +3,7 @@ package chickenGroups;
 import main.Drawable;
 import main.Main;
 import main.MainFrame;
+import shuttles.Tir;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -10,12 +11,10 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-public class Chicken implements Drawable {
+public class Chicken extends Drawable {
     private Random random;
-    private double x, y, vx, vy;
     private int type;
     private double nextX, nextY;
-    private BufferedImage image;
     private double percentOfHatching;
     private double life;
     private double eggSpeed;
@@ -99,8 +98,8 @@ public class Chicken implements Drawable {
 
     @Override
     public void update(double time) {
-        x += vx * time;
-        y += vy * time;
+        super.update(time);
+
         if(x == nextX)
             vx = 0;
         if(y == nextY)
@@ -137,11 +136,6 @@ public class Chicken implements Drawable {
         mainFrame.getItems().add(new Egg(x, y, 0, eggSpeed, mainFrame.getAssets().getEgg()));
     }
 
-    @Override
-    public void draw(Graphics2D g) {
-        g.drawImage(image, (int)(x - image.getWidth()/2), (int)(y - image.getHeight()/2), null);
-    }
-
     public double getNextY() {
         return nextY;
     }
@@ -162,10 +156,18 @@ public class Chicken implements Drawable {
     public Dimension getSize(){
         return new Dimension(image.getWidth(), image.getHeight());
     }
-    public double getX(){return x;}
-    public double getY(){return y;}
 
     public void killed(){
         //TODO
+        if((Math.abs(random.nextInt()) % 100) <= 3){
+            if(Math.abs(random.nextInt()) % 2 == 0){
+                mainFrame.getItems().add(new MaxTempBooster(x, y + image.getHeight()/2, 0, 100, mainFrame.getAssets().getMaxTempBooster()));
+            }else{
+                mainFrame.getItems().add(new TirBooster(x, y+image.getHeight()/2, 0, 100, mainFrame.getAssets().getTirBooster()));
+            }
+        }else if((Math.abs(random.nextInt()) % 100) <= 3){
+            int type = Math.abs(random.nextInt())%3;
+            mainFrame.getItems().add(new TirChanger(type, x, y+image.getHeight()/2, 0, 100, mainFrame.getAssets().getTirChanger(type)));
+        }
     }
 }
