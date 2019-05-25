@@ -21,4 +21,8 @@ public abstract class Drawable {
     public Dimension getSize(){return new Dimension(image.getWidth(), image.getHeight());}
 
     public boolean hasImage(){return image!=null;}
+
+    public boolean isOutOfPage(){
+        return (x + image.getWidth()/2 < 0 || x - image.getWidth()/2 > 1600 || y + image.getHeight()/2 < 0 || y - image.getHeight()/2 > 1000);
+    }
 }

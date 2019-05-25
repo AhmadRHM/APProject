@@ -16,7 +16,7 @@ public class RectangleGroup extends ChickenGroup {
         Random random = new Random(System.currentTimeMillis());
         synchronized (chickens) {
             for (int i = 0; i < numberOfChickens; i++) {
-                Chicken c = new Chicken(0, 100, type, i, Math.abs(random.nextInt()) % 7, mainFrame);
+                Chicken c = new Chicken(0, 100, type, i*Math.abs(random.nextInt()), Math.abs(random.nextInt()) % 7, mainFrame);
 //            System.out.println(Math.abs(random.nextInt())%7);
                 chickens.add(c);
 //            mainFrame.getItems().add(c);
@@ -45,14 +45,6 @@ public class RectangleGroup extends ChickenGroup {
                 c.setNext(x + (i % cols + 0.5) * c.getSize().width, y + (i / cols + 0.5) * c.getSize().height);
                 c.update(time);
             }
-        }
-    }
-
-    @Override
-    public void draw(Graphics2D g) {
-        synchronized (chickens) {
-            for (Chicken chicken : chickens)
-                chicken.draw(g);
         }
     }
 }

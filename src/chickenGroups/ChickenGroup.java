@@ -11,4 +11,12 @@ public abstract class ChickenGroup extends Drawable {
 //    protected abstract Point getPositionOfChicken(int id);
     public ArrayList<Chicken> getChickens(){return  chickens;}
 
+    public void removeChicken(Chicken chicken){};
+
+    public void draw(Graphics2D g){
+        synchronized (chickens) {
+            for (Chicken chicken : chickens)
+                chicken.draw(g);
+        }
+    }
 }

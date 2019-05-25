@@ -22,7 +22,8 @@ public class Chicken extends Drawable {
     private double timeMod1 = 0;
     private int frame = 0, frame0;
     private double degree = 0;
-    private double speed = 300;
+    private double speed = defaultSpeed;
+    public static double defaultSpeed = 300;
 
     private void fillTypeNumbers(){
         if(type == 1){
@@ -100,9 +101,9 @@ public class Chicken extends Drawable {
     public void update(double time) {
         super.update(time);
 
-        if(x == nextX)
+        if(Math.abs(x-nextX) < 2)
             vx = 0;
-        if(y == nextY)
+        if(Math.abs(y - nextY) < 2)
             vy = 0;
 ////        System.out.println(m);
 //        if (Math.abs(random.nextInt()) % 20000 <= 10)

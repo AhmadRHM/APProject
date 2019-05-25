@@ -172,5 +172,9 @@ public class Shuttle extends Drawable {
         //TODO
         System.out.println("Fire type changed to " + type);
     }
+    public void setFireType(int fireType){
+        this.fireType = fireType;
+    }
+    public int getFireType(){return fireType;}
 }
 

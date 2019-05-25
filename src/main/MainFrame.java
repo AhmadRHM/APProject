@@ -84,11 +84,8 @@ public class MainFrame extends JFrame {
                         if (mainPanel.isInGameMode()) {
                             //deleting bad items
                             for (Drawable drawable : items.getItems()) {
-                                if (drawable instanceof Tir) {
-                                    if (((Tir) drawable).remove())
-                                        items.remove(drawable);
-                                } else if (drawable instanceof Egg) {
-                                    if (((Egg) drawable).remove())
+                                if ((drawable instanceof Tir) || (drawable instanceof Egg) || (drawable instanceof TirBooster) || (drawable instanceof TirChanger) || (drawable instanceof MaxTempBooster)){
+                                    if (drawable.isOutOfPage())
                                         items.remove(drawable);
                                 } else if (drawable instanceof ChickenGroup) {
                                     if (((ChickenGroup) drawable).getChickens().size() == 0)
@@ -139,8 +136,10 @@ public class MainFrame extends JFrame {
                                                 shuttle.dead();
                                                 shuttleDied();
                                             }
-                                            if (shouldTheChickenDie)
+                                            if (shouldTheChickenDie) {
                                                 chickenIterator.remove();
+                                                chickenGroup.removeChicken(chicken);
+                                            }
                                         }
                                     }
                                 } else if (drawable instanceof Egg) {
@@ -168,7 +167,13 @@ public class MainFrame extends JFrame {
                                                 shuttle.setFirePower(shuttle.getFirePower() + 1);
                                                 items.remove(drawable);
                                             } else if (drawable instanceof TirChanger) {
-                                                shuttle.changeTir(((TirChanger) drawable).getType());
+                                                if(shuttle.getFireType() == ((TirChanger)drawable).getType()){
+                                                    shuttle.setFirePower(shuttle.getFirePower() + 1);
+                                                }
+                                                else
+                                                {
+                                                    shuttle.changeTir(((TirChanger) drawable).getType());
+                                                }
                                                 items.remove(drawable);
                                             }
                                         }
@@ -257,7 +262,11 @@ public class MainFrame extends JFrame {
 //        items.add(c);
 //        c.setNext(1000, 500 );
 
-        items.add(new RectangleGroup(40, 1, this));
+//        items.add(new RectangleGroup(40, 1, this));
+//        items.add(new CircularGroup(36, 1, this));
+//        items.add(new CircularGroup(20, 1, this));
+//        items.add(new RotationalGroup(20, 1, this));
+//        items.add(new SuicideGroup(15, 1, this));
 
         //mouse listeners
         mainPanel.addMouseMotionListener(new MouseAdapter() {

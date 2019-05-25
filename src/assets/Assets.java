@@ -60,7 +60,7 @@ public class Assets {
         return backgroundImage;
     }
 
-    public void setBackgroundImage() {
+    private void setBackgroundImage() {
         try {
             this.backgroundImage = ImageIO.read(new File("assets/BackgroundImage.jpg"));
 //            System.out.println("Background Image read! :))");
