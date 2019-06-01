@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Random;
 
 public class Main {
+    static private MainFrame mainFramee;
     public static void main(String[] args) {
         MainFrame mainFrame = new MainFrame();
+        mainFramee = mainFrame;
         mainFrame.setVisible(true);
         mainFrame.startAnimation();
 //        Random random = new Random(10);
@@ -26,9 +28,13 @@ public class Main {
         EsqFrame esqFrame = new EsqFrame(mainFrame);
         mainFrame.setEsqFrame(esqFrame);
 
-        Random random = new Random(System.currentTimeMillis());
-        for(int i=1; i<=40; i++)
-            if(Math.abs(random.nextInt()) % 20 == 0)
-                System.out.println("ye bar shod hala");
+//        Random random = new Random(System.currentTimeMillis());
+//        for(int i=1; i<=40; i++)
+//            if(Math.abs(random.nextInt()) % 20 == 0)
+//                System.out.println("ye bar shod hala");
+    }
+
+    public static MainFrame getMainFrame() {
+        return mainFramee;
     }
 }

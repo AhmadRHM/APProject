@@ -2,6 +2,7 @@ package main;
 
 import assets.Assets;
 import chickenGroups.*;
+import overridedSwingComponents.MouseCorrectRobot;
 import shuttles.DataBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
@@ -21,6 +22,7 @@ import java.util.Iterator;
 
 public class MainFrame extends JFrame {
     private int width = 1600, height = 1000;
+    private int lastMouseX, lastMouseY;
     private Assets assets;
     private MainPanel mainPanel;
     private double backgroundSpeed;
@@ -28,6 +30,10 @@ public class MainFrame extends JFrame {
     private User user;
     private EsqFrame esqFrame;
     private Items items;
+    private boolean setText = false;
+    private String textToBeShown;
+    private long timeTextShown = -1;
+    private InGameText inGameText;
 
     MainFrame() {
         super();
@@ -60,7 +66,6 @@ public class MainFrame extends JFrame {
         backgroundSpeed = 1;
 
         items = new Items();
-//        removeList = new ArrayList<>();
     }
 
     public void setBackgroundSpeed(double backgroundSpeed) {
@@ -71,128 +76,211 @@ public class MainFrame extends JFrame {
         return assets;
     }
 
+    private void makeRound(int round){
+        showText("Round " + round);
+        int type = (round-1)/5 + 1;
+        if(round % 5 == 1){
+            items.add(new RectangleGroup(40, type, this));
+        }else if(round % 5 == 2){
+            items.add(new CircularGroup(36, type, this));
+        }else if(round % 5 == 3){
+            items.add(new RotationalGroup(36, type, this));
+        }else if(round % 5 == 4){
+            items.add(new SuicideGroup(10, type, this));
+        }else{
+            System.out.println("ghoule in marhale bayad biad");
+        }
+    }
+    private void nextRound(){
+        user.setScore(user.getScore() + user.getMoney() * 3);
+        user.setMoney(0);
+        users.save();
+        int round = user.getLastLevel();
+        user.setLastLevel(round + 1);
+        round += 2;
+        if(round % 5 == 1 && round != 1) user.setRockets(user.getRockets()+1);
+        makeRound(round);
+    }
+
     private Thread animationThread;
 
     private void initAnimationThread() {
-        animationThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (true) {
-                        mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed));
+        animationThread = new Thread(() -> {
+            try {
+                while (true) {
+                    mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed));
 
-                        if (mainPanel.isInGameMode()) {
-                            //deleting bad items
-                            for (Drawable drawable : items.getItems()) {
-                                if ((drawable instanceof Tir) || (drawable instanceof Egg) || (drawable instanceof TirBooster) || (drawable instanceof TirChanger) || (drawable instanceof MaxTempBooster)){
-                                    if (drawable.isOutOfPage())
-                                        items.remove(drawable);
-                                } else if (drawable instanceof ChickenGroup) {
-                                    if (((ChickenGroup) drawable).getChickens().size() == 0)
-                                        items.remove(drawable);
-                                }
-                            }
-//                            System.out.println("killing bad items finished");
-                            //Update
-                            for (Drawable drawable : items.getItems()) {
-                                drawable.update(0.005);
-                            }
-//                            System.out.println("updating finished");
-
-                            //killing things! :D
-                            Iterator<Drawable> chickenGroupIterator = items.getItems().iterator();
-                            for (Drawable drawable : items.getItems()) {
-                                if (drawable instanceof ChickenGroup) {
-
-                                    ChickenGroup chickenGroup = (ChickenGroup) drawable;
-                                    synchronized (chickenGroup.getChickens()) {
-                                        Iterator<Chicken> chickenIterator = chickenGroup.getChickens().iterator();
-                                        while (chickenIterator.hasNext()) {
-                                            Chicken chicken = chickenIterator.next();
-                                            boolean shouldTheChickenDie = false;
-                                            //death of chickens
-                                            for (Drawable drwbl : items.getItems()) {
-                                                if (drwbl instanceof Tir) {
-                                                    Tir tir = (Tir) drwbl;
-//                                                    if (isIn(chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height, tir.getX(), tir.getY(), tir.getSize().width, tir.getSize().height)) {
-                                                    if (conflict(chicken, tir)) {
-                                                        chicken.reduceLives(tir.getPower());
-                                                        items.remove(tir);
-                                                        if (chicken.getLife() <= 0) {
-                                                            chicken.killed();
-                                                            shouldTheChickenDie = true;
-//                                                            chickenIterator.remove();
-//                                                            drawableIterator.remove();
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            //death of shuttle
-                                            Shuttle shuttle = mainPanel.getShuttle();
-//                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
-                                            if (!shuttle.isDead() && conflict(shuttle, chicken)) {
-//                                                chickenIterator.remove();
-                                                shouldTheChickenDie = true;
-                                                shuttle.dead();
-                                                shuttleDied();
-                                            }
-                                            if (shouldTheChickenDie) {
-                                                chickenIterator.remove();
-                                                chickenGroup.removeChicken(chicken);
-                                            }
-                                        }
-                                    }
-                                } else if (drawable instanceof Egg) {
-                                    Egg egg = (Egg) drawable;
-                                    Shuttle shuttle = mainPanel.getShuttle();
-//                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
-                                    if (!shuttle.isDead() && conflict(shuttle, egg)) {
-                                        shuttleDied();
-                                        shuttle.dead();
-                                        items.remove(drawable);
-                                    }
-                                }
-                            }
-//                            System.out.println("killing things finished");
-                            //getting boosters
+                    if (mainPanel.isInGameMode()) {
+                        //set the mouse place
+                        Shuttle shuttle = mainPanel.getShuttle();
+                        if(shuttle.isDead()) {
+                            shuttle.setBeginingCoord();
                             try {
-                                Shuttle shuttle = mainPanel.getShuttle();
-                                if (shuttle != null && !shuttle.isDead()) {
-                                    for (Drawable drawable : items.getItems()) {
-                                        if (drawable.hasImage() && conflict(shuttle, drawable)) {
-                                            if (drawable instanceof MaxTempBooster) {
-                                                shuttle.setMaxDegree(shuttle.getMaxDegree() + 5);
-                                                items.remove(drawable);
-                                            } else if (drawable instanceof TirBooster) {
-                                                shuttle.setFirePower(shuttle.getFirePower() + 1);
-                                                items.remove(drawable);
-                                            } else if (drawable instanceof TirChanger) {
-                                                if(shuttle.getFireType() == ((TirChanger)drawable).getType()){
-                                                    shuttle.setFirePower(shuttle.getFirePower() + 1);
-                                                }
-                                                else
-                                                {
-                                                    shuttle.changeTir(((TirChanger) drawable).getType());
-                                                }
-                                                items.remove(drawable);
-                                            }
-                                        }
-                                    }
-                                }
-                            }catch (Exception e){
-
+                                MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
+                                mouseCorrectRobot.myMouseMove((int) shuttle.getX(), (int) shuttle.getY());
+                            } catch (AWTException e) {
                                 e.printStackTrace();
                             }
                         }
-                        mainPanel.revalidate();
-                        mainPanel.repaint();
-                        animationThread.sleep(5);
+                        //add to playing time :D
+                        user.setTimePlayed(user.getTimePlayed() + 0.005);
+                        //round check
+                        boolean hasActiveChickenGroup = false;
+                        for(Drawable drawable : items.getItems()) {
+                            if (drawable instanceof ChickenGroup)
+                                hasActiveChickenGroup = true;
+                        }
+                        if(!hasActiveChickenGroup)
+                            nextRound();
+
+                        //Set text point
+                        if(setText){
+                            if(timeTextShown == -1){
+                                timeTextShown = System.currentTimeMillis();
+                                inGameText = new InGameText(textToBeShown);
+                                items.add(inGameText);
+                            }
+                            if(System.currentTimeMillis() - timeTextShown > 5000){
+                                setText = false;
+                                timeTextShown = -1;
+                                items.remove(inGameText);
+                                inGameText = null;
+                            }
+                        }
+
+                        //deleting bad items
+                        for (Drawable drawable : items.getItems()) {
+                            if ((drawable instanceof Tir) || (drawable instanceof Egg) ||
+                                    (drawable instanceof TirBooster) || (drawable instanceof TirChanger)
+                                    || (drawable instanceof MaxTempBooster) || (drawable instanceof Coin)){
+                                if (drawable.isOutOfPage())
+                                    items.remove(drawable);
+                            } else if (drawable instanceof ChickenGroup) {
+                                if (((ChickenGroup) drawable).getChickens().size() == 0)
+                                    items.remove(drawable);
+                            }
+                        }
+//                            System.out.println("killing bad items finished");
+                        //Update
+                        for (Drawable drawable : items.getItems()) {
+                            drawable.update(0.005);
+                        }
+//                            System.out.println("updating finished");
+
+                        //killing things! :D
+                        Iterator<Drawable> chickenGroupIterator = items.getItems().iterator();
+                        for (Drawable drawable : items.getItems()) {
+                            if (drawable instanceof ChickenGroup) {
+
+                                ChickenGroup chickenGroup = (ChickenGroup) drawable;
+                                synchronized (chickenGroup.getChickens()) {
+                                    Iterator<Chicken> chickenIterator = chickenGroup.getChickens().iterator();
+                                    while (chickenIterator.hasNext()) {
+                                        Chicken chicken = chickenIterator.next();
+                                        boolean shouldTheChickenDie = false;
+                                        //death of chickens
+                                        for (Drawable drwbl : items.getItems()) {
+                                            if (drwbl instanceof Tir) {
+                                                Tir tir = (Tir) drwbl;
+//                                                    if (isIn(chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height, tir.getX(), tir.getY(), tir.getSize().width, tir.getSize().height)) {
+                                                if (conflict(chicken, tir)) {
+                                                    chicken.reduceLives(tir.getPower());
+                                                    items.remove(tir);
+                                                    if (chicken.getLife() <= 0) {
+                                                        user.setScore(user.getScore() + chicken.getType());
+                                                        chicken.killed();
+                                                        shouldTheChickenDie = true;
+//                                                            chickenIterator.remove();
+//                                                            drawableIterator.remove();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        //death of shuttle
+//                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
+                                        if (!shuttle.isDead() && conflict(shuttle, chicken)) {
+//                                                chickenIterator.remove();
+                                            shouldTheChickenDie = true;
+                                            shuttle.dead();
+                                            shuttleDied();
+                                        }
+                                        if (shouldTheChickenDie) {
+                                            chickenIterator.remove();
+                                            chickenGroup.removeChicken(chicken);
+                                        }
+                                    }
+                                }
+                            } else if (drawable instanceof Egg) {
+                                Egg egg = (Egg) drawable;
+//                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
+                                if (!shuttle.isDead() && conflict(shuttle, egg)) {
+                                    shuttleDied();
+                                    shuttle.dead();
+                                    items.remove(drawable);
+                                }
+                            }
+                        }
+//                            System.out.println("killing things finished");
+                        //getting boosters
+                        try {
+                            if (shuttle != null && !shuttle.isDead()) {
+                                for (Drawable drawable : items.getItems()) {
+                                    if (drawable.hasImage() && conflict(shuttle, drawable)) {
+                                        if (drawable instanceof MaxTempBooster) {
+                                            shuttle.setMaxDegree(shuttle.getMaxDegree() + 5);
+                                            items.remove(drawable);
+                                        } else if (drawable instanceof TirBooster) {
+                                            shuttle.setFirePower(shuttle.getFirePower() + 1);
+                                            user.setFirePower(user.getFirePower()+1);
+                                            items.remove(drawable);
+                                        } else if (drawable instanceof TirChanger) {
+                                            if(shuttle.getFireType() == ((TirChanger)drawable).getType()){
+                                                shuttle.setFirePower(shuttle.getFirePower() + 1);
+                                                user.setFirePower(user.getFirePower()+1);
+                                            }
+                                            else
+                                            {
+                                                shuttle.changeTir(((TirChanger) drawable).getType());
+                                            }
+                                            items.remove(drawable);
+                                        }
+                                    }
+                                }
+                            }
+                        }catch (Exception e){
+
+                            e.printStackTrace();
+                        }
+                        //getting coins
+                        if(shuttle != null && !shuttle.isDead()){
+                            for(Drawable drawable:items.getItems())
+                                if(drawable instanceof Coin && conflict(shuttle, drawable)){
+                                    items.remove(drawable);
+                                    user.setMoney(user.getMoney()+1);
+                                }
+                        }
+                        //destroying coins
+                        for(Drawable drawable1:items.getItems())
+                            if(drawable1 instanceof Tir)
+                                for(Drawable drawable2:items.getItems())
+                                    if(drawable2 instanceof Coin && conflict(drawable1, drawable2)){
+                                        items.remove(drawable1);
+                                        items.remove(drawable2);
+                                    }
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    mainPanel.revalidate();
+                    mainPanel.repaint();
+                    animationThread.sleep(5);
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
+    }
+
+    public void showText(String textToBeShown){
+        this.textToBeShown = textToBeShown;
+        setText = true;
     }
 
     public void startAnimation() {
@@ -217,6 +305,8 @@ public class MainFrame extends JFrame {
     }
 
     private void initForUserSelection() {
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+
         mainPanel.setLayout(new BorderLayout());
         UsersPanel usersPanel = new UsersPanel(this);
         mainPanel.setUsersPanel(usersPanel);
@@ -231,6 +321,8 @@ public class MainFrame extends JFrame {
         mainPanel.clear();
         revalidate();
         repaint();
+
+        mainPanel.setCursor(Cursor.getDefaultCursor());
 
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
         main.MenuPanel menuPanel = new main.MenuPanel(this);
@@ -251,23 +343,39 @@ public class MainFrame extends JFrame {
         mainPanel.clear();
         revalidate();
         repaint();
+//        setCursor(null);
+//        /*
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Image image = toolkit.getImage("icons/handwriting.gif");
+        Cursor c = toolkit.createCustomCursor(image , new Point(mainPanel.getX(),
+                mainPanel.getY()), "img");
+        mainPanel.setCursor (c);
+//         */
 
-        mainPanel.setInGameMode(true);
+
         mainPanel.setShuttle(new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower()));
-        items.add(new HeatBar(mainPanel.getShuttle()));
+        items.add(new HeatBar(this));
         items.add(mainPanel.getShuttle());
         items.add(new DataBar(this));
+
+
+        try {
+            MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
+            mouseCorrectRobot.myMouseMove((int)mainPanel.getShuttle().getX(), (int)mainPanel.getShuttle().getY());
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
 
 //        Chicken c = new Chicken(500, 500, 20, 0, 1, assets.getChicken(1, 0), this);
 //        items.add(c);
 //        c.setNext(1000, 500 );
+//        items.add(new RotationalGroup(36, 1, this));
+//        this.showText("Round 1");
+        if(user.getLastLevel() != -1) {
+            makeRound(user.getLastLevel() + 1);
+        }
 
-//        items.add(new RectangleGroup(40, 1, this));
-//        items.add(new CircularGroup(36, 1, this));
-//        items.add(new CircularGroup(20, 1, this));
-//        items.add(new RotationalGroup(20, 1, this));
-//        items.add(new SuicideGroup(15, 1, this));
-
+        mainPanel.setInGameMode(true);
         //mouse listeners
         mainPanel.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -280,8 +388,10 @@ public class MainFrame extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                mainPanel.getShuttle().setX(e.getX());
-                mainPanel.getShuttle().setY(e.getY());
+                if(mainPanel.isInGameMode()) {
+                    mainPanel.getShuttle().setX(e.getX());
+                    mainPanel.getShuttle().setY(e.getY());
+                }
             }
         });
         mainPanel.addMouseListener(new MouseAdapter() {
@@ -294,6 +404,7 @@ public class MainFrame extends JFrame {
             @Override
             public void mousePressed(MouseEvent e) {
                 super.mousePressed(e);
+//                System.out.println("dishdiri didin");
                 mainPanel.getShuttle().fire();
             }
         });
@@ -359,16 +470,43 @@ public class MainFrame extends JFrame {
     public void rocketBoomed() {
         //TODO
         System.out.println("rocket Boomeddd...!! :D");
+        for(Drawable drawable:items.getItems())
+            if(drawable instanceof ChickenGroup) {
+                for(Chicken chicken:((ChickenGroup)drawable).getChickens()) {
+                    chicken.killed();
+                    user.setScore(user.getScore() + chicken.getType());
+                }
+                items.remove(drawable);
+            }else if(drawable instanceof Egg)
+                items.remove(drawable);
+
     }
 
     public void shuttleDied() {
         user.setLives(user.getLives() - 1);
         if (user.getLives() == 0)
             endGame();
+        user.setMoney(0);
     }
 
     public void endGame() {
         //TODO
         System.out.println("game ended");
+    }
+
+    public int getLastMouseX() {
+        return lastMouseX;
+    }
+
+    public void setLastMouseX(int lastMouseX) {
+        this.lastMouseX = lastMouseX;
+    }
+
+    public int getLastMouseY() {
+        return lastMouseY;
+    }
+
+    public void setLastMouseY(int lastMouseY) {
+        this.lastMouseY = lastMouseY;
     }
 }

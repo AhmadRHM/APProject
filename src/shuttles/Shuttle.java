@@ -35,11 +35,13 @@ public class Shuttle extends Drawable {
         this.mainPanelWidth = mainFrame.getMainPanel().getWidth();
         this.mainPanelHeight = mainFrame.getMainPanel().getHeight();
         image = assets.getShuttle(type);
-        x = mainFrame.getMainPanel().getSize().width / 2;
-        y = mainFrame.getMainPanel().getSize().height - image.getHeight()/2;
+        setBeginingCoord();
         this.type = type;
     }
-
+    public void setBeginingCoord(){
+        x = mainFrame.getMainPanel().getSize().width / 2;
+        y = mainFrame.getMainPanel().getSize().height - image.getHeight()/2;
+    }
     @Override
     public void update(double time) {
         if(isDead && System.currentTimeMillis() - deathTime >= 5000){
@@ -160,6 +162,8 @@ public class Shuttle extends Drawable {
     public void dead(){
         isDead = true;
         deathTime = System.currentTimeMillis();
+        mainFrame.getUser().setFirePower(1);
+        firePower = 1;
     }
 
     public boolean isDead(){return  isDead;}

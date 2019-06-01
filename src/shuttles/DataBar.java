@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 
 public class DataBar extends Drawable {
     private User user;
-    private BufferedImage heart, rocket, meat;
+    private BufferedImage heart, rocket, meat, coin;
     private MainFrame mainFrame;
     public DataBar(MainFrame mainFrame){
         this.mainFrame = mainFrame;
@@ -19,6 +19,7 @@ public class DataBar extends Drawable {
         heart = assets.getHeart();
         rocket = assets.getRocketLogo();
         meat = assets.getMeat();
+        coin = assets.getCoinLogo();
     }
 
     @Override
@@ -30,8 +31,10 @@ public class DataBar extends Drawable {
         g.drawString(String.valueOf(user.getLives()), 5 + width + 5, y + height/2 + 5);
         g.drawImage(rocket, null , 5 + width + 5 + width + 5, y);
         g.drawString(String.valueOf(user.getRockets()), 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
-        g.drawImage(meat, null, 5 + width + 5 + width + 5 + width + 5 + width + 5, y);
-        g.drawString(String.valueOf(user.getMoney()), 5 + width + 5 + width + 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
+//        g.drawImage(meat, null, 5 + width + 5 + width + 5 + width + 5 + width + 5, y);
+//        g.drawString(String.valueOf(user.getMoney()), 5 + width + 5 + width + 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
+        g.drawImage(coin, null,    5 + width + 5 + width + 5 + width + 5 + width + 5, y - 10);
+        g.drawString(String.valueOf(user.getMoney()),   5 + width + 5 + width + 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
 //        System.out.println("drawing this shit");
     }
 }

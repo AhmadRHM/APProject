@@ -13,6 +13,7 @@ public class User {
     private int rockets;
     private int money;
     private int shuttleType, fireType, firePower;
+    private double timePlayed;
 //    private Shuttle shuttle;
     public User(String username, int id, MainFrame mainFrame){
         this.id = id;
@@ -42,10 +43,13 @@ public class User {
 
     public void initForNewGame(){
         score = 0;
-        lastLevel = 0;
+        lastLevel = -1;
         lives = 5;
         rockets = 3;
         money = 0;
+        timePlayed = 0;
+        fireType = 1;
+        firePower = 1;
     }
 
     public void startNewGame(){
@@ -115,5 +119,13 @@ public class User {
 
     public void setFirePower(int firePower) {
         this.firePower = firePower;
+    }
+
+    public double getTimePlayed() {
+        return timePlayed;
+    }
+
+    public void setTimePlayed(double timePlayed) {
+        this.timePlayed = timePlayed;
     }
 }

@@ -2,6 +2,7 @@ package main;
 
 import assets.Assets;
 import overridedSwingComponents.Button;
+import overridedSwingComponents.MouseCorrectRobot;
 import overridedSwingComponents.MouseListenerForButton;
 import overridedSwingComponents.RoundJTextField;
 
@@ -134,6 +135,14 @@ public class EsqFrame extends JFrame {
                 MainPanel mainPanel = mainFrame.getMainPanel();
                 mainPanel.setInGameMode(true);
                 mainFrame.getEsqFrame().setVisible(false);
+                try {
+                    MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
+//                    Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//                    mouseCorrectRobot.MoveMouseControlled((double)mainFrame.getLastMouseX()/ScreenSize.width, (double)mainFrame.getLastMouseY()/ScreenSize.height);
+                    mouseCorrectRobot.myMouseMove(mainFrame.getLastMouseX(), mainFrame.getLastMouseY());
+                } catch (AWTException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         settingsButton.addMouseListener(new MouseListenerForButton() {

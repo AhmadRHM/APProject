@@ -1,6 +1,8 @@
 package main;
 
 import assets.Assets;
+import shuttles.DataBar;
+import shuttles.HeatBar;
 import shuttles.Shuttle;
 import users.MenuPanel;
 import users.Users;
@@ -58,6 +60,9 @@ public class MainPanel extends JPanel {
                     if (code == 27) {
                         inGameMode = false;
                         mainFrame.getEsqFrame().initForInGameMenu();
+                        int x = MouseInfo.getPointerInfo().getLocation().x, y = MouseInfo.getPointerInfo().getLocation().y;
+                        mainFrame.setLastMouseX(x);
+                        mainFrame.setLastMouseY(y);
                         mainFrame.getEsqFrame().setVisible(true);
                     }
                     if(code == 10){
@@ -99,18 +104,14 @@ public class MainPanel extends JPanel {
         super.paintComponent(G);
         Graphics2D g2 = (Graphics2D)G;
         g2.drawImage(assets.getBackgroundImage(), 0, -1*yOfBackground, this);
-        if(inGameMode){
-//            mainFrame.getItems().addUsing();
-            try {
-//                if(!mainFrame.getItems().isChanging())
-                for (Drawable drawable : mainFrame.getItems().getItems())
-                    drawable.draw(g2);
-            }catch (ConcurrentModificationException e){
-//                System.out.println("concurrent dad " + mainFrame.getItems().getUsing());
-                e.printStackTrace();
-            }
-//            mainFrame.getItems().deleteUsing();
-        }
+//        if(inGameMode){
+        for(Drawable drawable : mainFrame.getItems().getItems())
+            if(!(drawable instanceof DataBar || drawable instanceof HeatBar))
+                drawable.draw(g2);
+        for (Drawable drawable : mainFrame.getItems().getItems())
+            if(drawable instanceof DataBar || drawable instanceof HeatBar)
+                drawable.draw(g2);
+//        }
     }
 
     public UsersPanel getUsersPanel() {

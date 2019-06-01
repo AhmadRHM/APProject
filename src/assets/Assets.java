@@ -35,7 +35,7 @@ public class Assets {
     private BufferedImage rocket;
 
     //mini images for data
-    private BufferedImage heart, rocketLogo, meat;
+    private BufferedImage heart, rocketLogo, meat, coinLogo;
 
     //Chicken images
     private BufferedImage egg;
@@ -46,10 +46,13 @@ public class Assets {
     private  BufferedImage tirBooster;
     private BufferedImage[] tirChanger;
 
+    //Coin
+    private BufferedImage coin;
+
     public Assets(){
         this.shuttle = new BufferedImage[4];
         this.fire = new BufferedImage[4];
-        this.chickens = new BufferedImage[4][14];
+        this.chickens = new BufferedImage[5][14];
         this.tirChanger = new BufferedImage[3];
     }
 
@@ -531,6 +534,19 @@ public class Assets {
         return rocketLogo;
     }
 
+    private void setCoinLogo(){
+        try {
+            coinLogo = ImageIO.read(new File("assets/coinLogo.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getCoinLogo(){
+        if(coinLogo == null)
+            setCoinLogo();
+        return  coinLogo;
+    }
+
     public BufferedImage getEgg() {
         if(egg == null) {
             setEgg();
@@ -601,4 +617,16 @@ public class Assets {
         return tirChanger[type];
     }
 
+    private void setCoin(){
+        try {
+            coin = ImageIO.read(new File("assets/coin.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getCoin(){
+        if(coin == null)
+            setCoin();
+        return coin;
+    }
 }
