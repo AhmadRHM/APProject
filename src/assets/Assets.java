@@ -27,6 +27,7 @@ public class Assets {
     private ImageIcon rankingButtonDefault, rankingButtonHovered, rankingButtonPressed;
     private ImageIcon quitButtonDefault, quitButtonHovered, quitButtonPressed;
     private ImageIcon continueButtonDefault, continueButtonHovered, continueButtonPressed;
+    private ImageIcon backButtonDefault, backButtonHovered, backButtonPressed;
 
     //Logos
     private ImageIcon chickenInvadersLogo;
@@ -40,6 +41,7 @@ public class Assets {
     //Chicken images
     private BufferedImage egg;
     private BufferedImage[][] chickens;
+    private BufferedImage bigEgg;
 
     //booster images
     private BufferedImage maxTempBooster;
@@ -51,9 +53,9 @@ public class Assets {
 
     public Assets(){
         this.shuttle = new BufferedImage[4];
-        this.fire = new BufferedImage[4];
+        this.fire = new BufferedImage[5];
         this.chickens = new BufferedImage[5][14];
-        this.tirChanger = new BufferedImage[3];
+        this.tirChanger = new BufferedImage[4];
     }
 
     public BufferedImage getBackgroundImage() {
@@ -401,6 +403,42 @@ public class Assets {
             setRankingButtonPressed();
         return rankingButtonPressed;
     }
+    private void setBackButtonDefault(){
+        try {
+            backButtonDefault = new ImageIcon(ImageIO.read(new File("assets/buttons/BackButton/Default.png")));
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getBackButtonDefault(){
+        if(backButtonDefault == null)
+            setBackButtonDefault();
+        return backButtonDefault;
+    }
+    private void setBackButtonHovered(){
+        try {
+            backButtonHovered = new ImageIcon(ImageIO.read(new File("assets/buttons/BackButton/Hovered.png")));
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getBackButtonHovered(){
+        if(backButtonHovered == null)
+            setBackButtonHovered();
+        return backButtonHovered;
+    }
+    private void setBackButtonPressed(){
+        try {
+            backButtonPressed = new ImageIcon(ImageIO.read(new File("assets/buttons/BackButton/Pressed.png")));
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getBackButtonPressed(){
+        if(backButtonPressed == null)
+            setBackButtonPressed();
+        return backButtonPressed;
+    }
     private void setChickenInvadersLogo(){
         try {
             chickenInvadersLogo = new ImageIcon(ImageIO.read(new File("assets/ChickenInvadersLogo.png")));
@@ -628,5 +666,17 @@ public class Assets {
         if(coin == null)
             setCoin();
         return coin;
+    }
+    private void setBigEgg(){
+        try {
+            bigEgg = ImageIO.read(new File("assets/BigEgg.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public BufferedImage getBigEgg(){
+        if(bigEgg == null)
+            setBigEgg();
+        return bigEgg;
     }
 }

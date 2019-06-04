@@ -9,19 +9,36 @@ import java.awt.image.BufferedImage;
 
 public class Shuttle extends Drawable {
     private final int speed = 10;
-    private final int coolDownBetweenFires = 200;
+    private int coolDownBetweenFires;
+    private double tirPower ;
+    private double heat;
     private int type;
     private Assets assets;
     private double temperature;
     private boolean overHeated;
     private long lastTimeFired;
     private int fireType, firePower;
-    private double tirPower = 1;
     private MainFrame mainFrame;
     private int mainPanelWidth, mainPanelHeight;
     private int maxDegree = 100;
     private boolean isDead = false;
     private long deathTime;
+
+    private void setTirConsts(){
+        if(fireType == 1){
+           coolDownBetweenFires = 200;
+           tirPower = 1;
+           heat = 8;
+        }else if(fireType == 2){
+            coolDownBetweenFires = 200;
+            tirPower = 1.1;
+            heat = 9;
+        }else if(fireType==3){
+            coolDownBetweenFires = 300;
+            tirPower=1.5;
+            heat=15;
+        }
+    }
 
     public Shuttle(int type, Assets assets, MainFrame mainFrame, int fireType, int firePower){
         this.assets = assets;
@@ -30,6 +47,7 @@ public class Shuttle extends Drawable {
         this.overHeated = false;
         this.lastTimeFired = 0;
         this.fireType = fireType;
+        setTirConsts();
         this.firePower = firePower;
         this.mainFrame = mainFrame;
         this.mainPanelWidth = mainFrame.getMainPanel().getWidth();
@@ -110,7 +128,7 @@ public class Shuttle extends Drawable {
         }
         //Firing
         lastTimeFired = System.currentTimeMillis();
-        temperature += 8;
+        temperature += heat;
 
 //        if(fireType == 1 || fireType == 2){
 ////            System.out.println("fire power is " + firePower);
@@ -174,7 +192,9 @@ public class Shuttle extends Drawable {
     public int getFirePower(){return firePower;}
     public void changeTir(int type){
         //TODO
-        System.out.println("Fire type changed to " + type);
+//        System.out.println("Fire type changed to " + type);
+        fireType = type;
+        setTirConsts();
     }
     public void setFireType(int fireType){
         this.fireType = fireType;

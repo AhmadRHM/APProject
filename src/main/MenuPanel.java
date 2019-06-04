@@ -66,7 +66,7 @@ public class MenuPanel extends JPanel {
         rankingButton.addMouseListener(new MouseListenerForButton() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
+                mainFrame.initForRanking();
             }
         });
         quitButton.addMouseListener(new MouseListenerForButton() {

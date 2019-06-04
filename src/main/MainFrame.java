@@ -7,10 +7,8 @@ import shuttles.DataBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
 import shuttles.HeatBar;
+import users.*;
 import users.MenuPanel;
-import users.User;
-import users.Users;
-import users.UsersPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,6 +25,7 @@ public class MainFrame extends JFrame {
     private MainPanel mainPanel;
     private double backgroundSpeed;
     private Users users;
+    private Records records;
     private User user;
     private EsqFrame esqFrame;
     private Items items;
@@ -61,6 +60,8 @@ public class MainFrame extends JFrame {
 //        users.addUser("rahim", this);
 //        users.addUser("ali", this);
 
+        records = new Records();
+
         initForUserSelection();
 
         backgroundSpeed = 1;
@@ -77,6 +78,10 @@ public class MainFrame extends JFrame {
     }
 
     private void makeRound(int round){
+        if(round >= 21){
+            endGame();
+            return;
+        }
         showText("Round " + round);
         int type = (round-1)/5 + 1;
         if(round % 5 == 1){
@@ -89,6 +94,9 @@ public class MainFrame extends JFrame {
             items.add(new SuicideGroup(10, type, this));
         }else{
             System.out.println("ghoule in marhale bayad biad");
+            BigEgg bigEgg = new BigEgg(800, -500, 250 * (round/5 + 1), this);
+            bigEgg.setNext(800, 500);
+            items.add(bigEgg);
         }
     }
     private void nextRound(){
@@ -127,7 +135,7 @@ public class MainFrame extends JFrame {
                         //round check
                         boolean hasActiveChickenGroup = false;
                         for(Drawable drawable : items.getItems()) {
-                            if (drawable instanceof ChickenGroup)
+                            if (drawable instanceof ChickenGroup || drawable instanceof BigEgg)
                                 hasActiveChickenGroup = true;
                         }
                         if(!hasActiveChickenGroup)
@@ -217,6 +225,27 @@ public class MainFrame extends JFrame {
                                     shuttleDied();
                                     shuttle.dead();
                                     items.remove(drawable);
+                                }
+                            } else if(drawable instanceof  BigEgg){
+                                BigEgg bigEgg = (BigEgg)drawable;
+                                for(Drawable drwbl : items.getItems()){
+                                    if(drwbl instanceof Tir){
+                                        if(conflict(drawable, drwbl)) {
+                                            bigEgg.reduceLives(((Tir) drwbl).getPower());
+                                            items.remove(drwbl);
+                                        }
+                                    }else if(drwbl instanceof Shuttle){
+                                        if(conflict(drawable, drwbl)) {
+                                            bigEgg.reduceLives(20);
+                                            shuttle.dead();
+                                            shuttleDied();
+                                        }
+                                    }
+                                }
+                                if(bigEgg.getLife() <= 0){
+                                    showText("Congratulations!");
+                                    bigEgg.killed();
+                                    items.remove(bigEgg);
                                 }
                             }
                         }
@@ -339,6 +368,20 @@ public class MainFrame extends JFrame {
         return !((x1 + w1 / 2 < x2 - w2 / 2) || (x2 + w2 / 2 < x1 - w1 / 2) || (y1 + h1 / 2 < y2 - h2 / 2) || (y2 + h2 / 2 < y1 - h1 / 2));
     }
 
+    public void initForRanking(){
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+        Ranking ranking = new Ranking(this);
+        mainPanel.add(ranking);
+        for(Record record : records.getRecords()) {
+            ranking.addRecord(record);
+        }
+        ranking.pack();
+    }
+
     public void initForGame() {
         mainPanel.clear();
         revalidate();
@@ -388,7 +431,8 @@ public class MainFrame extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                if(mainPanel.isInGameMode()) {
+                if(mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
+//                    System.out.println("oooops");
                     mainPanel.getShuttle().setX(e.getX());
                     mainPanel.getShuttle().setY(e.getY());
                 }
@@ -413,14 +457,16 @@ public class MainFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                if (e.getKeyChar() == 'a' || e.getKeyCode() == 37)
-                    mainPanel.getShuttle().toLeft();
-                if (e.getKeyChar() == 's' || e.getKeyCode() == 40)
-                    mainPanel.getShuttle().toDown();
-                if (e.getKeyChar() == 'd' || e.getKeyCode() == 39)
-                    mainPanel.getShuttle().toRight();
-                if (e.getKeyChar() == 'w' || e.getKeyCode() == 38)
-                    mainPanel.getShuttle().toUp();
+                if(mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
+                    if (e.getKeyChar() == 'a' || e.getKeyCode() == 37)
+                        mainPanel.getShuttle().toLeft();
+                    if (e.getKeyChar() == 's' || e.getKeyCode() == 40)
+                        mainPanel.getShuttle().toDown();
+                    if (e.getKeyChar() == 'd' || e.getKeyCode() == 39)
+                        mainPanel.getShuttle().toRight();
+                    if (e.getKeyChar() == 'w' || e.getKeyCode() == 38)
+                        mainPanel.getShuttle().toUp();
+                }
             }
 
             @Override
@@ -492,6 +538,9 @@ public class MainFrame extends JFrame {
     public void endGame() {
         //TODO
         System.out.println("game ended");
+        records.addRecord(new Record(user.getUsername(), user.getTimePlayed(), user.getLastLevel(), user.getScore()));
+        mainPanel.setInGameMode(false);
+        initForRanking();
     }
 
     public int getLastMouseX() {
@@ -508,5 +557,9 @@ public class MainFrame extends JFrame {
 
     public void setLastMouseY(int lastMouseY) {
         this.lastMouseY = lastMouseY;
+    }
+
+    public Records getRecords() {
+        return records;
     }
 }

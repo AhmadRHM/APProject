@@ -9,11 +9,11 @@ import java.awt.image.AffineTransformOp;
 import java.util.Random;
 
 public class Chicken extends Drawable {
-    private Random random;
+    protected Random random;
     private int type;
     private double nextX, nextY;
     private double percentOfHatching;
-    private double life;
+    protected double life;
     private double eggSpeed;
     private MainFrame mainFrame;
     private double timeMod1 = 0;
@@ -134,7 +134,7 @@ public class Chicken extends Drawable {
         }
     }
 
-    private void throwEgg() {
+    protected void throwEgg() {
         mainFrame.getItems().add(new Egg(x, y, 0, eggSpeed, mainFrame.getAssets().getEgg()));
     }
 
@@ -165,7 +165,6 @@ public class Chicken extends Drawable {
     }
 
     public void killed() {
-        //TODO
         if ((Math.abs(random.nextInt()) % 100) <= 3) {
             if (Math.abs(random.nextInt()) % 2 == 0) {
                 mainFrame.getItems().add(new MaxTempBooster(x, y + image.getHeight() / 2, 0, 100, mainFrame.getAssets().getMaxTempBooster()));
@@ -173,7 +172,7 @@ public class Chicken extends Drawable {
                 mainFrame.getItems().add(new TirBooster(x, y + image.getHeight() / 2, 0, 100, mainFrame.getAssets().getTirBooster()));
             }
         } else if ((Math.abs(random.nextInt()) % 100) <= 3) {
-            int type = Math.abs(random.nextInt()) % 3;
+            int type = Math.abs(random.nextInt()) % 3 + 1;
             mainFrame.getItems().add(new TirChanger(type, x, y + image.getHeight() / 2, 0, 100, mainFrame.getAssets().getTirChanger(type)));
         }
         if((Math.abs(random.nextInt())%100)<=6)

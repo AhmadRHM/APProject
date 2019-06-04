@@ -3,15 +3,15 @@
     "username": "ahmad",
     "id": 0,
     "hasSavedGame": true,
-    "score": 901,
+    "score": 1140,
     "lastLevel": 15,
-    "lives": -2,
+    "lives": 5,
     "rockets": 1,
     "money": 0,
     "shuttleType": 1,
     "fireType": 1,
-    "firePower": 1,
-    "timePlayed": 166.39499999992117
+    "firePower": 16,
+    "timePlayed": 258.4349999998375
   },
   {
     "username": "ali",
@@ -45,28 +45,28 @@
     "username": "kiana",
     "id": 4,
     "hasSavedGame": true,
-    "score": 0,
-    "lastLevel": -1,
-    "lives": 5,
+    "score": 1127,
+    "lastLevel": 15,
+    "lives": 4,
     "rockets": 3,
     "money": 0,
     "shuttleType": 1,
     "fireType": 1,
     "firePower": 1,
-    "timePlayed": 0.0
+    "timePlayed": 140.50499999994472
   },
   {
     "username": "fateme",
     "id": 7,
     "hasSavedGame": true,
-    "score": 0,
-    "lastLevel": 0,
+    "score": 1635,
+    "lastLevel": 19,
     "lives": 5,
-    "rockets": 3,
+    "rockets": 2,
     "money": 0,
     "shuttleType": 1,
     "fireType": 1,
-    "firePower": 1,
-    "timePlayed": 0.0
+    "firePower": 22,
+    "timePlayed": 188.2399999999013
   }
 ]
