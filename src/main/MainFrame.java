@@ -525,6 +525,12 @@ public class MainFrame extends JFrame {
                 items.remove(drawable);
             }else if(drawable instanceof Egg)
                 items.remove(drawable);
+            else if(drawable instanceof BigEgg){
+                BigEgg bigEgg = (BigEgg)drawable;
+                bigEgg.reduceLives(50);
+//                if(bigEgg.getLife() <= 0)
+
+            }
 
     }
 
