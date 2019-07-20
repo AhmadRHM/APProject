@@ -16,6 +16,7 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 
 public class MainPanel extends JPanel {
@@ -105,13 +106,163 @@ public class MainPanel extends JPanel {
         Graphics2D g2 = (Graphics2D)G;
         g2.drawImage(assets.getBackgroundImage(), 0, -1*yOfBackground, this);
 //        if(inGameMode){
-        for(Drawable drawable : mainFrame.getItems().getItems())
-            if(!(drawable instanceof DataBar || drawable instanceof HeatBar))
-                drawable.draw(g2);
-        for (Drawable drawable : mainFrame.getItems().getItems())
-            if(drawable instanceof DataBar || drawable instanceof HeatBar)
-                drawable.draw(g2);
+        if(!mainFrame.isMultiplayer() || mainFrame.getId() == 0) {
+            for (Drawable drawable : mainFrame.getItems().getItems())
+                if (!(drawable instanceof DataBar || drawable instanceof HeatBar))
+                    drawable.draw(g2);
+            for (Drawable drawable : mainFrame.getItems().getItems())
+                if (drawable instanceof DataBar || drawable instanceof HeatBar)
+                    drawable.draw(g2);
 //        }
+        }else{
+            ArrayList<String> list;
+
+
+            for(String st : (ArrayList<String>)mainFrame.getTirs().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                int type = Integer.valueOf(list.get(2));
+                draw(g2, assets.getFire(type), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getChickens().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                int type = Integer.valueOf(list.get(2));
+                int frame = Integer.valueOf(list.get(3));
+                if (frame >= 7)
+                    frame = 12 - frame;
+                draw(g2, assets.getChicken(type, frame), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getBigegg().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getBigEgg(), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getSpaceships().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                int type = Integer.valueOf(list.get(2));
+                draw(g2, assets.getShuttle(type), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getEggs().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getEgg(), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getMaxtempBoosters().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getMaxTempBooster(), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getTirBoosters().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getTirBooster(), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getTirChangers().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                int type = Integer.valueOf(list.get(2));
+                draw(g2, assets.getTirChanger(type), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getCoins().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getCoin(), x, y);
+            }
+
+            for(String st : (ArrayList<String>)mainFrame.getRockets().clone()){
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                draw(g2, assets.getRocket(), x, y);
+            }
+
+            for(String st:(ArrayList<String>)mainFrame.getIngameTextes().clone()) {
+                list = tajzie(st);
+                int x = Integer.valueOf(list.get(0));
+                int y = Integer.valueOf(list.get(1));
+                String text = list.get(2);
+                g2.setFont(new Font("Diwani", Font.PLAIN, 100));
+                g2.setColor(Color.WHITE);
+                int width = G.getFontMetrics().stringWidth(text);
+                g2.drawString(text, (int)(x - width/2), (int)(y - 5));
+            }
+
+            for(String st:(ArrayList<String>)mainFrame.getDatabar().clone()){
+                list = tajzie(st);
+//                System.out.println("yuhahaha" + st);
+                int lives = Integer.valueOf(list.get(0));
+                int rockets = Integer.valueOf(list.get(1));
+                int money = Integer.valueOf(list.get(2));
+                BufferedImage heart, rocket, meat, coin;
+                heart = assets.getHeart();
+                rocket = assets.getRocketLogo();
+                coin = assets.getCoinLogo();
+
+                int width = heart.getWidth(), height = heart.getHeight(), y = mainFrame.getMainPanel().getHeight() - 5 - height;
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Dialog", Font.BOLD, 25));
+                g2.drawImage(heart, null, 5, y);
+                g2.drawString(String.valueOf(lives), 5 + width + 5, y + height/2 + 5);
+                g2.drawImage(rocket, null , 5 + width + 5 + width + 5, y);
+                g2.drawString(String.valueOf(rockets), 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
+                g2.drawImage(coin, null,    5 + width + 5 + width + 5 + width + 5 + width + 5, y - 10);
+                g2.drawString(String.valueOf(money),   5 + width + 5 + width + 5 + width + 5 + width + 5 + width + 5, y + height/2 + 5);
+            }
+
+            for(String st:(ArrayList<String>)mainFrame.getHeatbar().clone()){
+                list = tajzie(st);
+                int tmp = Integer.valueOf(list.get(0));
+                int score = Integer.valueOf(list.get(1));
+                g2.setColor(Color.WHITE);
+                g2.drawRect(3, 3, (int)(40 * (8) - 10 + 4), (int)(40 + 4));
+                for(int i=0; i<tmp; i++){
+                    g2.setColor(new Color((int)(255*i/40) , (int)(255 - 255*i/40) , 0));
+                    g2.fillRect((int)(5 + i*(8)), 5, (int)5, (int)40);
+                }
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Dialog", Font.BOLD, 25));
+                g2.drawString("Score: "+ String.valueOf(score), (int)(3 + 40 * (8) - 10 + 4 + 10),(int)(3 + 40/2 + 8) );
+
+            }
+
+        }
+    }
+
+    private ArrayList<String> tajzie(String st){
+        String tmp = "";
+        ArrayList ans = new ArrayList();
+        for(int i=0; i<st.length(); i++)
+            if(st.charAt(i) != ' ')
+                tmp += st.charAt(i);
+            else{
+                ans.add(tmp);
+                tmp = "";
+            }
+        if(tmp != "")
+            ans.add(tmp);
+        return ans;
+    }
+    private void draw(Graphics2D G, BufferedImage image, int x, int y){
+        G.drawImage(image, (int)(x - image.getWidth()/2), (int)(y - image.getHeight()/2), null);
     }
 
     public UsersPanel getUsersPanel() {

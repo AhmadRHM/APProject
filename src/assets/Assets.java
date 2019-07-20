@@ -28,6 +28,13 @@ public class Assets {
     private ImageIcon quitButtonDefault, quitButtonHovered, quitButtonPressed;
     private ImageIcon continueButtonDefault, continueButtonHovered, continueButtonPressed;
     private ImageIcon backButtonDefault, backButtonHovered, backButtonPressed;
+    private ImageIcon singlePlayerButtonDefault, singlePlayerButtonHovered, singlePlayerButtonPressed;
+    private ImageIcon multiplayerButtonDefault, multiplayerButtonHovered, multiplayerButtonPressed;
+    private ImageIcon serverButtonDefault, serverButtonHovered, serverButtonPressed;
+    private ImageIcon clientButtonDefault, clientButtonHovered, clientButtonPressed;
+    private ImageIcon connectButtonDefault, connectButtonHovered, connectButtonPressed;
+    private ImageIcon makegameButtonDefault, makegameButtonHovered, makegameButtonPressed;
+    private ImageIcon startgameButtonDefault, startgameButtonHovered, startgameButtonPressed;
 
     //Logos
     private ImageIcon chickenInvadersLogo;
@@ -678,5 +685,257 @@ public class Assets {
         if(bigEgg == null)
             setBigEgg();
         return bigEgg;
+    }
+    private void setSinglePlayerButtonDefault(){
+        try {
+            singlePlayerButtonDefault = new ImageIcon(ImageIO.read(new File("assets/buttons/singlePlayerButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getSinglePlayerButtonDefault(){
+        if(singlePlayerButtonDefault == null)
+            setSinglePlayerButtonDefault();
+        return singlePlayerButtonDefault;
+    }
+    private void setSinglePlayerButtonHovered(){
+        try {
+            singlePlayerButtonHovered = new ImageIcon(ImageIO.read(new File("assets/buttons/singlePlayerButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getSinglePlayerButtonHovered(){
+        if(singlePlayerButtonHovered == null)
+            setSinglePlayerButtonHovered();
+        return singlePlayerButtonHovered;
+    }
+    private void setSinglePlayerButtonPressed(){
+        try {
+            singlePlayerButtonPressed = new ImageIcon(ImageIO.read(new File("assets/buttons/singlePlayerButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getSinglePlayerButtonPressed(){
+        if(singlePlayerButtonPressed == null)
+            setSinglePlayerButtonPressed();
+        return singlePlayerButtonPressed;
+    }
+    private void setMultiplayerButtonDefault(){
+        try {
+            multiplayerButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/multiplayerButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmultiplayerButtonDefault(){
+        if(multiplayerButtonDefault == null)
+            setMultiplayerButtonDefault();
+        return multiplayerButtonDefault;
+    }
+    private void setMultiplayerButtonHovered(){
+        try {
+            multiplayerButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/multiplayerButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmultiplayerButtonHovered(){
+        if(multiplayerButtonHovered == null)
+            setMultiplayerButtonHovered();
+        return multiplayerButtonHovered;
+    }
+    private void setMultiplayerButtonPressed(){
+        try {
+            multiplayerButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/multiplayerButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmultiplayerButtonPressed(){
+        if(multiplayerButtonPressed == null)
+            setMultiplayerButtonPressed();
+        return multiplayerButtonPressed;
+    }
+    private void setserverButtonDefault(){
+        try {
+            serverButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/serverButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getserverButtonDefault(){
+        if(serverButtonDefault == null)
+            setserverButtonDefault();
+        return serverButtonDefault;
+    }
+    private void setserverButtonHovered(){
+        try {
+            serverButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/serverButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getserverButtonHovered(){
+        if(serverButtonHovered == null)
+            setserverButtonHovered();
+        return serverButtonHovered;
+    }
+    private void setserverButtonPressed(){
+        try {
+            serverButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/serverButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getserverButtonPressed(){
+        if(serverButtonPressed == null)
+            setserverButtonPressed();
+        return serverButtonPressed;
+    }
+    private void setclientButtonDefault(){
+        try {
+            clientButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/clientButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getclientButtonDefault(){
+        if(clientButtonDefault == null)
+            setclientButtonDefault();
+        return clientButtonDefault;
+    }
+    private void setclientButtonHovered(){
+        try {
+            clientButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/clientButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getclientButtonHovered(){
+        if(clientButtonHovered == null)
+            setclientButtonHovered();
+        return clientButtonHovered;
+    }
+    private void setclientButtonPressed(){
+        try {
+            clientButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/clientButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getclientButtonPressed() {
+        if (clientButtonPressed == null)
+            setclientButtonPressed();
+        return clientButtonPressed;
+    }
+    private void setconnectButtonDefault(){
+        try {
+            connectButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/connectButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getconnectButtonDefault(){
+        if(connectButtonDefault == null)
+            setconnectButtonDefault();
+        return connectButtonDefault;
+    }
+    private void setconnectButtonHovered(){
+        try {
+            connectButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/connectButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getconnectButtonHovered(){
+        if(connectButtonHovered == null)
+            setconnectButtonHovered();
+        return connectButtonHovered;
+    }
+    private void setconnectButtonPressed(){
+        try {
+            connectButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/connectButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getconnectButtonPressed(){
+        if(connectButtonPressed == null)
+            setconnectButtonPressed();
+        return connectButtonPressed;
+    }
+    private void setmakegameButtonDefault(){
+        try {
+            makegameButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/makegameButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmakegameButtonDefault(){
+        if(makegameButtonDefault == null)
+            setmakegameButtonDefault();
+        return makegameButtonDefault;
+    }
+    private void setmakegameButtonHovered(){
+        try {
+            makegameButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/makegameButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmakegameButtonHovered(){
+        if(makegameButtonHovered == null)
+            setmakegameButtonHovered();
+        return makegameButtonHovered;
+    }
+    private void setmakegameButtonPressed(){
+        try {
+            makegameButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/makegameButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getmakegameButtonPressed(){
+        if(makegameButtonPressed == null)
+            setmakegameButtonPressed();
+        return makegameButtonPressed;
+    }
+    private void setstartgameButtonDefault(){
+        try {
+            startgameButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/startgameButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getstartgameButtonDefault(){
+        if(startgameButtonDefault == null)
+            setstartgameButtonDefault();
+        return startgameButtonDefault;
+    }
+    private void setstartgameButtonHovered(){
+        try {
+            startgameButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/startgameButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getstartgameButtonHovered(){
+        if(startgameButtonHovered == null)
+            setstartgameButtonHovered();
+        return startgameButtonHovered;
+    }
+    private void setstartgameButtonPressed(){
+        try {
+            startgameButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/startgameButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getstartgameButtonPressed(){
+        if(startgameButtonPressed == null)
+            setstartgameButtonPressed();
+        return startgameButtonPressed;
     }
 }

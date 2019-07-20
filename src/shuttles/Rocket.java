@@ -10,7 +10,8 @@ import java.awt.image.BufferedImage;
 
 public class Rocket extends Drawable {
     private MainFrame mainFrame;
-    public Rocket(BufferedImage img, int vx, int vy, int x, int y, MainFrame mainFrame){
+    private int id;
+    public Rocket(int id, BufferedImage img, int vx, int vy, int x, int y, MainFrame mainFrame){
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -23,12 +24,14 @@ public class Rocket extends Drawable {
         AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
 
         this.image  = op.filter(img, null);
+
+        this.id  = id;
     }
     @Override
     public void update(double time) {
         super.update(time);
         if(Math.abs( x-800) < 1 || Math.abs(y-500) < 1){
-            mainFrame.rocketBoomed();
+            mainFrame.rocketBoomed(id);
             mainFrame.getItems().remove(this);
         }
     }

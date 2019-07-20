@@ -63,7 +63,6 @@ public class RotationalGroup extends ChickenGroup {
         thetha0 += angleSpeed * time;
         if(thetha0 > 360)
             thetha0 -= 360;
-
         for(int circle=0; circle<numberOfCircles; circle++){
             double radius = radius0 + radiusForEachCircle * circle + radiusForEachCircle/2;
             for(int i=0; i<chickensInCircle[circle].size(); i++) {

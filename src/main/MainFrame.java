@@ -1,7 +1,10 @@
 package main;
 
+import Network.*;
 import assets.Assets;
 import chickenGroups.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import overridedSwingComponents.MouseCorrectRobot;
 import shuttles.DataBar;
 import shuttles.Shuttle;
@@ -16,7 +19,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
 
 public class MainFrame extends JFrame {
     private int width = 1600, height = 1000;
@@ -27,12 +35,46 @@ public class MainFrame extends JFrame {
     private Users users;
     private Records records;
     private User user;
+    private int numberOfLevels;
+
+    public ArrayList<User> getPlayingUsers() {
+        return playingUsers;
+    }
+
+    public ArrayList<User> getWaitingUsers() {
+        return waitingUsers;
+    }
+
+    public ArrayList<User> getSpectatingUsers() {
+        return spectatingUsers;
+    }
+
+    private ArrayList<User> playingUsers, waitingUsers, spectatingUsers;
+
+    public ArrayList<Shuttle> getShuttles() {
+        return shuttles;
+    }
+
+    private ArrayList<Shuttle> shuttles;
+    private ServerSocket serverSocket;
+    private Socket socket;
+    private ArrayList<ClientHandler> handlers;
+    private int maxUsers;
     private EsqFrame esqFrame;
     private Items items;
     private boolean setText = false;
     private String textToBeShown;
     private long timeTextShown = -1;
     private InGameText inGameText;
+    private int id;
+    private boolean isServer=false;
+    private String dataToPrint;
+
+    public void setMultiplayer(boolean multiplayer) {
+        isMultiplayer = multiplayer;
+    }
+
+    private boolean isMultiplayer = false;
 
     MainFrame() {
         super();
@@ -67,6 +109,11 @@ public class MainFrame extends JFrame {
         backgroundSpeed = 1;
 
         items = new Items();
+
+        shuttles = new ArrayList<>();
+        playingUsers = new ArrayList<>();
+        waitingUsers = new ArrayList<>();
+        spectatingUsers = new ArrayList<>();
     }
 
     public void setBackgroundSpeed(double backgroundSpeed) {
@@ -79,7 +126,7 @@ public class MainFrame extends JFrame {
 
     private void makeRound(int round){
         if(round >= 21){
-            endGame();
+            endGame(0);
             return;
         }
         showText("Round " + round);
@@ -112,22 +159,25 @@ public class MainFrame extends JFrame {
 
     private Thread animationThread;
 
+    private final int delay = 5;
+
     private void initAnimationThread() {
         animationThread = new Thread(() -> {
             try {
                 while (true) {
-                    mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed));
+                    mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed * delay / 5));
 
                     if (mainPanel.isInGameMode()) {
                         //set the mouse place
-                        Shuttle shuttle = mainPanel.getShuttle();
-                        if(shuttle.isDead()) {
-                            shuttle.setBeginingCoord();
-                            try {
-                                MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
-                                mouseCorrectRobot.myMouseMove((int) shuttle.getX(), (int) shuttle.getY());
-                            } catch (AWTException e) {
-                                e.printStackTrace();
+                        for(Shuttle shuttle : shuttles) {
+                            if (shuttle.isDead()) {
+                                shuttle.setBeginingCoord();
+                                try {
+                                    MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
+                                    mouseCorrectRobot.myMouseMove((int) shuttle.getX(), (int) shuttle.getY());
+                                } catch (AWTException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                         //add to playing time :D
@@ -171,7 +221,7 @@ public class MainFrame extends JFrame {
 //                            System.out.println("killing bad items finished");
                         //Update
                         for (Drawable drawable : items.getItems()) {
-                            drawable.update(0.005);
+                            drawable.update((double)delay/1000);
                         }
 //                            System.out.println("updating finished");
 
@@ -206,25 +256,33 @@ public class MainFrame extends JFrame {
                                         }
                                         //death of shuttle
 //                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
-                                        if (!shuttle.isDead() && conflict(shuttle, chicken)) {
+                                        for(Shuttle shuttle : shuttles) {
+                                            if (!shuttle.isDead() && conflict(shuttle, chicken)) {
 //                                                chickenIterator.remove();
-                                            shouldTheChickenDie = true;
-                                            shuttle.dead();
-                                            shuttleDied();
-                                        }
-                                        if (shouldTheChickenDie) {
-                                            chickenIterator.remove();
-                                            chickenGroup.removeChicken(chicken);
+                                                shouldTheChickenDie = true;
+                                                shuttle.dead();
+                                                shuttleDied(shuttle.getId());
+                                            }
+                                            if (shouldTheChickenDie) {
+                                                try {
+                                                    chickenIterator.remove();
+                                                    chickenGroup.removeChicken(chicken);
+                                                }catch (Exception e){
+                                                    e.printStackTrace();
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             } else if (drawable instanceof Egg) {
                                 Egg egg = (Egg) drawable;
 //                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
-                                if (!shuttle.isDead() && conflict(shuttle, egg)) {
-                                    shuttleDied();
-                                    shuttle.dead();
-                                    items.remove(drawable);
+                                for(Shuttle shuttle : shuttles) {
+                                    if (!shuttle.isDead() && conflict(shuttle, egg)) {
+                                        shuttleDied(shuttle.getId());
+                                        shuttle.dead();
+                                        items.remove(drawable);
+                                    }
                                 }
                             } else if(drawable instanceof  BigEgg){
                                 BigEgg bigEgg = (BigEgg)drawable;
@@ -237,8 +295,9 @@ public class MainFrame extends JFrame {
                                     }else if(drwbl instanceof Shuttle){
                                         if(conflict(drawable, drwbl)) {
                                             bigEgg.reduceLives(20);
+                                            Shuttle shuttle = ((Shuttle)drwbl);
                                             shuttle.dead();
-                                            shuttleDied();
+                                            shuttleDied(shuttle.getId());
                                         }
                                     }
                                 }
@@ -252,26 +311,26 @@ public class MainFrame extends JFrame {
 //                            System.out.println("killing things finished");
                         //getting boosters
                         try {
-                            if (shuttle != null && !shuttle.isDead()) {
-                                for (Drawable drawable : items.getItems()) {
-                                    if (drawable.hasImage() && conflict(shuttle, drawable)) {
-                                        if (drawable instanceof MaxTempBooster) {
-                                            shuttle.setMaxDegree(shuttle.getMaxDegree() + 5);
-                                            items.remove(drawable);
-                                        } else if (drawable instanceof TirBooster) {
-                                            shuttle.setFirePower(shuttle.getFirePower() + 1);
-                                            user.setFirePower(user.getFirePower()+1);
-                                            items.remove(drawable);
-                                        } else if (drawable instanceof TirChanger) {
-                                            if(shuttle.getFireType() == ((TirChanger)drawable).getType()){
+                            for(Shuttle shuttle:shuttles) {
+                                if (shuttle != null && !shuttle.isDead()) {
+                                    for (Drawable drawable : items.getItems()) {
+                                        if (drawable.hasImage() && conflict(shuttle, drawable)) {
+                                            if (drawable instanceof MaxTempBooster) {
+                                                shuttle.setMaxDegree(shuttle.getMaxDegree() + 5);
+                                                items.remove(drawable);
+                                            } else if (drawable instanceof TirBooster) {
                                                 shuttle.setFirePower(shuttle.getFirePower() + 1);
-                                                user.setFirePower(user.getFirePower()+1);
+                                                user.setFirePower(user.getFirePower() + 1);
+                                                items.remove(drawable);
+                                            } else if (drawable instanceof TirChanger) {
+                                                if (shuttle.getFireType() == ((TirChanger) drawable).getType()) {
+                                                    shuttle.setFirePower(shuttle.getFirePower() + 1);
+                                                    user.setFirePower(user.getFirePower() + 1);
+                                                } else {
+                                                    shuttle.changeTir(((TirChanger) drawable).getType());
+                                                }
+                                                items.remove(drawable);
                                             }
-                                            else
-                                            {
-                                                shuttle.changeTir(((TirChanger) drawable).getType());
-                                            }
-                                            items.remove(drawable);
                                         }
                                     }
                                 }
@@ -281,12 +340,14 @@ public class MainFrame extends JFrame {
                             e.printStackTrace();
                         }
                         //getting coins
-                        if(shuttle != null && !shuttle.isDead()){
-                            for(Drawable drawable:items.getItems())
-                                if(drawable instanceof Coin && conflict(shuttle, drawable)){
-                                    items.remove(drawable);
-                                    user.setMoney(user.getMoney()+1);
-                                }
+                        for(Shuttle shuttle : shuttles) {
+                            if (shuttle != null && !shuttle.isDead()) {
+                                for (Drawable drawable : items.getItems())
+                                    if (drawable instanceof Coin && conflict(shuttle, drawable)) {
+                                        items.remove(drawable);
+                                        user.setMoney(user.getMoney() + 1);
+                                    }
+                            }
                         }
                         //destroying coins
                         for(Drawable drawable1:items.getItems())
@@ -299,12 +360,292 @@ public class MainFrame extends JFrame {
                     }
                     mainPanel.revalidate();
                     mainPanel.repaint();
-                    animationThread.sleep(5);
+                    animationThread.sleep(delay);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
+    }
+    public User getUser(int id){
+        return playingUsers.get(id);
+    }
+    public Shuttle getShuttle(int id){
+        return shuttles.get(id);
+    }
+    public void startServer(int maxUsers, int port) {
+        isServerGameStarted = false;
+        Shuttle shuttle = new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower(), 0);
+        mainPanel.setShuttle(shuttle);
+        shuttles.add(shuttle);
+
+        playingUsers.add(user);
+
+        isMultiplayer = true;
+        id = 0;
+        isServer = true;
+        this.maxUsers = maxUsers;
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    serverSocket =  new ServerSocket(port);
+                    handlers = new ArrayList<>();
+
+                    System.out.println("server is running and waiting to give service to clients");
+                    while (playingUsers.size() + waitingUsers.size() + spectatingUsers.size() < maxUsers){
+                        Socket socket = serverSocket.accept();
+                        System.out.println("new client joined server! :D");
+                        ClientHandler handler = new ClientHandler(socket.getInputStream(),socket.getOutputStream(), playingUsers.size(),  mainPanel.getMainFrame());
+                        handlers.add(handler);
+                        handler.start();
+                    }
+                }catch (Exception e){
+                    System.out.println("problem starting server");
+
+                }
+            }
+        });
+        thread.start();
+    }
+
+    public ArrayList<String> getTirs() {
+        return tirs;
+    }
+
+    public ArrayList<String> getChickens() {
+        return chickens;
+    }
+
+    public ArrayList<String> getBigegg() {
+        return bigegg;
+    }
+
+    public ArrayList<String> getSpaceships() {
+        return spaceships;
+    }
+
+    public ArrayList<String> getEggs() {
+        return eggs;
+    }
+
+    public ArrayList<String> getMaxtempBoosters() {
+        return maxtempBoosters;
+    }
+
+    public ArrayList<String> getTirBoosters() {
+        return tirBoosters;
+    }
+
+    public ArrayList<String> getTirChangers() {
+        return tirChangers;
+    }
+
+    public ArrayList<String> getCoins() {
+        return coins;
+    }
+
+    public ArrayList<String> getIngameTextes() {
+        return ingameTextes;
+    }
+
+    public ArrayList<String> getRockets() {
+        return rockets;
+    }
+
+    public ArrayList<String> getDatabar() {
+        return databar;
+    }
+
+    public ArrayList<String> getHeatbar() {
+        return heatbar;
+    }
+
+    private ArrayList<String> tirs, chickens, bigegg, spaceships, eggs, maxtempBoosters, tirBoosters, tirChangers, coins, ingameTextes, rockets, databar, heatbar;
+
+    boolean serverStarted = false;
+    public void startClient(String ip, int port, boolean isSpectator){
+        isMultiplayer = true;
+        serverStarted = false;
+        tirs = new ArrayList<>();
+        chickens = new ArrayList<>();
+        bigegg = new ArrayList<>();
+        spaceships = new ArrayList<>();
+        eggs = new ArrayList<>();
+        maxtempBoosters = new ArrayList<>();
+        tirBoosters = new ArrayList<>();
+        tirChangers = new ArrayList<>();
+        coins = new ArrayList<>();
+        ingameTextes = new ArrayList<>();
+        rockets = new ArrayList<>();
+        databar = new ArrayList<>();
+        heatbar = new ArrayList<>();
+        try{
+            socket = new Socket(ip, port);
+            System.out.println("connected to server! :))");
+            PrintStream printer = new PrintStream(socket.getOutputStream());
+            Scanner scanner = new Scanner(socket.getInputStream());
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GsonBuilder builder = new GsonBuilder();
+                    Gson gson = builder.create();
+                    printer.println(gson.toJson(user));
+                    printer.println(isSpectator);
+                    printer.flush();
+                    id = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.println("client id is " + id);
+                    while (true){
+                        if(serverStarted) {
+                            printer.println("get");
+                            printer.flush();
+                            int n;
+                            tirs.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                tirs.add(scanner.nextLine());
+                            chickens.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                chickens.add(scanner.nextLine());
+                            bigegg.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                bigegg.add(scanner.nextLine());
+                            spaceships.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                spaceships.add(scanner.nextLine());
+                            eggs.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                eggs.add(scanner.nextLine());
+                            maxtempBoosters.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++)
+                                maxtempBoosters.add(scanner.nextLine());
+                            tirBoosters.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++) {
+                                tirBoosters.add(scanner.nextLine());
+                            }
+                            tirChangers.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++) {
+                                tirChangers.add(scanner.nextLine());
+                            }
+                            coins.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++) {
+                                coins.add(scanner.nextLine());
+                            }
+                            ingameTextes.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++) {
+                                ingameTextes.add(scanner.nextLine());
+                            }
+                            rockets.clear();
+                            n = scanner.nextInt();scanner.nextLine();
+                            for (int i = 0; i < n; i++) {
+                                rockets.add(scanner.nextLine());
+                            }
+                            databar.clear();
+                            heatbar.clear();
+                            n=1;
+                            for (int i = 0; i < n; i++) {
+                                databar.add(scanner.nextLine());
+                            }
+                            for (int i = 0; i < n; i++)
+                                heatbar.add(scanner.nextLine());
+                            mainPanel.revalidate();
+                            mainPanel.repaint();
+                        }else{
+                            printer.println("gamestarted");
+                            printer.flush();
+                            String answer = scanner.nextLine();
+                            if(answer.equals("yes")) {
+                                serverStarted = true;
+                                mainPanel.clear();
+//                                System.out.println("mouse listener added to mainPanel");
+                                mainPanel.addMouseMotionListener(new MouseAdapter() {
+                                    @Override
+                                    public void mouseDragged(MouseEvent e) {
+                                        super.mouseDragged(e);
+                                        printer.println("fire");
+                                        printer.flush();
+                                        mouseMoved(e);
+                                    }
+
+                                    @Override
+                                    public void mouseMoved(MouseEvent e) {
+                                        super.mouseMoved(e);
+//                                        if(mainPanel.isInGameMode()) {
+                                            printer.println("move " + e.getX() + " " + e.getY());
+                                            printer.flush();
+//                                        }
+                                    }
+                                });
+                                mainPanel.addMouseListener(new MouseAdapter() {
+                                    @Override
+                                    public void mousePressed(MouseEvent e) {
+                                        super.mousePressed(e);
+                                        printer.println("fire");
+                                        printer.flush();
+                                    }
+                                });
+                                mainPanel.addKeyListener(new KeyAdapter() {
+                                    @Override
+                                    public void keyPressed(KeyEvent e) {
+                                        super.keyPressed(e);
+                                        if (e.getKeyChar() == ' ') {
+                                            printer.println("fire");
+                                            printer.flush();
+                                        }
+                                    }
+                                });
+                            }
+                            else{
+
+                                playingUsers = new ArrayList<>();
+                                int n = scanner.nextInt();
+                                scanner.nextLine();
+//                                System.out.println("read : " + n);
+                                for(int i=0; i<n; i++){
+                                    String st = scanner.nextLine();
+//                                    System.out.println("read : " + st);
+                                    User user = gson.fromJson(st, User.class);
+                                    playingUsers.add(user);
+                                }
+
+                                spectatingUsers = new ArrayList<>();
+                                n = scanner.nextInt();
+                                scanner.nextLine();
+                                for(int i=0; i<n; i++){
+                                    String st = scanner.nextLine();
+                                    User user = gson.fromJson(st, User.class);
+                                    spectatingUsers.add(user);
+                                }
+                                serverDetalePanel.initLabels();
+                            }
+                        }
+                        try {
+                            Thread.sleep(5);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }catch (Exception e){
+            System.out.println("problem connecting to server");
+        }
+    }
+    public void stopServer(){
+        System.out.println("terminating all services");
+        for(ClientHandler handler:handlers)
+            handler.stop();
     }
 
     public void showText(String textToBeShown){
@@ -381,8 +722,37 @@ public class MainFrame extends JFrame {
         }
         ranking.pack();
     }
+    public void initForGameTypePanel(){
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+        GameTypePanel gameTypePanel = new GameTypePanel(this);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(gameTypePanel);
+        mainPanel.add(Box.createGlue());
+    }
+    public void initForPlayerTypePanel(){
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+        PlayerTypePanel playerTypePanel = new PlayerTypePanel(this);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(playerTypePanel);
+        mainPanel.add(Box.createGlue());
+    }
 
+    public boolean isServerGameStarted() {
+        return isServerGameStarted;
+    }
+
+    private boolean isServerGameStarted = false;
     public void initForGame() {
+        if(isMultiplayer)
+            isServerGameStarted = true;
         mainPanel.clear();
         revalidate();
         repaint();
@@ -395,8 +765,13 @@ public class MainFrame extends JFrame {
         mainPanel.setCursor (c);
 //         */
 
+        if(!isMultiplayer) {
+            Shuttle shuttle = new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower(), 0);
+            mainPanel.setShuttle(shuttle);
+            shuttles.add(shuttle);
+        }
+        playingUsers.add(user);
 
-        mainPanel.setShuttle(new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower()));
         items.add(new HeatBar(this));
         items.add(mainPanel.getShuttle());
         items.add(new DataBar(this));
@@ -513,14 +888,14 @@ public class MainFrame extends JFrame {
         users.save();
     }
 
-    public void rocketBoomed() {
+    public void rocketBoomed(int id) {
         //TODO
         System.out.println("rocket Boomeddd...!! :D");
         for(Drawable drawable:items.getItems())
             if(drawable instanceof ChickenGroup) {
                 for(Chicken chicken:((ChickenGroup)drawable).getChickens()) {
                     chicken.killed();
-                    user.setScore(user.getScore() + chicken.getType());
+                    getUser(id).setScore(getUser(id).getScore() + chicken.getType());
                 }
                 items.remove(drawable);
             }else if(drawable instanceof Egg)
@@ -534,19 +909,21 @@ public class MainFrame extends JFrame {
 
     }
 
-    public void shuttleDied() {
-        user.setLives(user.getLives() - 1);
-        if (user.getLives() == 0)
-            endGame();
+    public void shuttleDied(int id) {
+        getUser(id).setLives(getUser(id).getLives() - 1);
+        if (getUser(id).getLives() == 0)
+            endGame(id);
         user.setMoney(0);
     }
 
-    public void endGame() {
+    public void endGame(int id) {
         //TODO
         System.out.println("game ended");
         records.addRecord(new Record(user.getUsername(), user.getTimePlayed(), user.getLastLevel(), user.getScore()));
         mainPanel.setInGameMode(false);
         initForRanking();
+        repaint();
+        revalidate();
     }
 
     public int getLastMouseX() {
@@ -567,5 +944,82 @@ public class MainFrame extends JFrame {
 
     public Records getRecords() {
         return records;
+    }
+
+    public void moveShuttleTo(int id, int x, int y){
+        getShuttle(id).setX(x);
+        getShuttle(id).setY(y);
+    }
+    public void fireShuttle(int id){
+        getShuttle(id).fire();
+    }
+    public void shootRocket(int id){
+        getShuttle(id).shootRocket();
+    }
+
+    public boolean isMultiplayer() {
+        return isMultiplayer;
+    }
+
+    public String getDataToPrint() {
+        return dataToPrint;
+    }
+
+    public void setDataToPrint(String dataToPrint) {
+        this.dataToPrint = dataToPrint;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getNumberOfLevels() {
+        return numberOfLevels;
+    }
+
+    public void setNumberOfLevels(int numberOfLevels) {
+        this.numberOfLevels = numberOfLevels;
+    }
+
+    public ServerDetalePanel getServerDetalePanel() {
+        return serverDetalePanel;
+    }
+
+    private ServerDetalePanel serverDetalePanel;
+    public void initForServerDetalePanel() {
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+        serverDetalePanel = new ServerDetalePanel(this);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(serverDetalePanel);
+        mainPanel.add(Box.createGlue());
+        repaint();
+        revalidate();
+    }
+    public void initForServerDataPanel(){
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+        ServerDataPanel serverDataPanel = new ServerDataPanel(this);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(serverDataPanel);
+        mainPanel.add(Box.createGlue());
+    }
+
+    public void initForClientDataPanel() {
+        mainPanel.clear();
+        revalidate();
+        repaint();
+        mainPanel.setCursor(Cursor.getDefaultCursor());
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+        ClientDataPanel clientDataPanel = new ClientDataPanel(this);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(clientDataPanel);
+        mainPanel.add(Box.createGlue());
     }
 }

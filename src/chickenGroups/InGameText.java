@@ -17,6 +17,10 @@ public class InGameText extends Drawable {
 
         this.text = st;
     }
+    @Override
+    public String toString(){
+        return super.toString() + " " + text;
+    }
     public InGameText(String st, double x, double y){
         this(st);
         this.x = x;

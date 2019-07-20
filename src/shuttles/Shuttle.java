@@ -23,6 +23,12 @@ public class Shuttle extends Drawable {
     private int maxDegree = 100;
     private boolean isDead = false;
     private long deathTime;
+    private int id;
+
+    @Override
+    public String toString() {
+        return super.toString() + " " + type;
+    }
 
     private void setTirConsts(){
         if(fireType == 1){
@@ -40,7 +46,7 @@ public class Shuttle extends Drawable {
         }
     }
 
-    public Shuttle(int type, Assets assets, MainFrame mainFrame, int fireType, int firePower){
+    public Shuttle(int type, Assets assets, MainFrame mainFrame, int fireType, int firePower, int id){
         this.assets = assets;
 
         this.temperature = 0;
@@ -55,6 +61,8 @@ public class Shuttle extends Drawable {
         image = assets.getShuttle(type);
         setBeginingCoord();
         this.type = type;
+
+        this.id = id;
     }
     public void setBeginingCoord(){
         x = mainFrame.getMainPanel().getSize().width / 2;
@@ -166,7 +174,7 @@ public class Shuttle extends Drawable {
         mainFrame.getUser().setRockets(mainFrame.getUser().getRockets()-1);
         //TODO
         System.out.println("Shooting rocket");
-        mainFrame.getItems().add(new Rocket(assets.getRocket(), (int)(800 - x)/2, (int)(500 - y)/2, (int)x, (int)y, mainFrame));
+        mainFrame.getItems().add(new Rocket(id, assets.getRocket(), (int)(800 - x)/2, (int)(500 - y)/2, (int)x, (int)y, mainFrame));
     }
 
     public int getMaxDegree() {
@@ -200,5 +208,9 @@ public class Shuttle extends Drawable {
         this.fireType = fireType;
     }
     public int getFireType(){return fireType;}
+
+    public int getId() {
+        return  id;
+    }
 }
 

@@ -17,6 +17,12 @@ public class Tir extends Drawable {
         this(x,y,vx,vy,type,degree,assets);
         this.power = power;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " " + type;
+    }
+
     public Tir(double x, double y, double vx, double vy, int type, int degree, Assets assets){
         this.x = x;
         this.y = y;

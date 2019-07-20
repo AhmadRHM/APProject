@@ -22,6 +22,11 @@ public class Chicken extends Drawable {
     private double speed = defaultSpeed;
     public static double defaultSpeed = 300;
 
+    @Override
+    public String toString(){
+        return super.toString() + " " + type + " " + frame;
+    }
+
     private void fillTypeNumbers() {
         if (type == 1) {
             percentOfHatching = 0.05;
@@ -63,6 +68,7 @@ public class Chicken extends Drawable {
         image = mainFrame.getAssets().getChicken(type, frame);
 
         fillTypeNumbers();
+        life *= (int)Math.sqrt(mainFrame.getPlayingUsers().size());
 
         this.mainFrame = mainFrame;
 

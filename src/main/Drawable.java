@@ -25,4 +25,8 @@ public abstract class Drawable {
     public boolean isOutOfPage(){
         return (x + image.getWidth()/2 < 0 || x - image.getWidth()/2 > 1600 || y + image.getHeight()/2 < 0 || y - image.getHeight()/2 > 1000);
     }
+    @Override
+    public String toString(){
+        return (int)x + " " + (int)y;
+    }
 }

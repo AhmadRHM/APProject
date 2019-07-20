@@ -15,6 +15,7 @@ public class BigEgg extends Chicken {
         this.mainFrame = mainFrame;
         this.image = mainFrame.getAssets().getBigEgg();
         this.life = lives;
+        this.life *= (int)Math.sqrt(mainFrame.getPlayingUsers().size());
         this.setSpeed(50);
     }
     @Override

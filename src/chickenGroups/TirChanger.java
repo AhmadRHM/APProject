@@ -18,6 +18,11 @@ public class TirChanger extends Drawable {
         this.image = image;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + " " + type;
+    }
+
     public int getType() {
         return type;
     }

@@ -45,9 +45,7 @@ public class MenuPanel extends JPanel {
         newGameButton.addMouseListener(new MouseListenerForButton() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                mainFrame.getUser().startNewGame();
-                mainFrame.getUsers().save();
-                mainFrame.initForGame();
+                mainFrame.initForGameTypePanel();
             }
         });
         if(mainFrame.getUser().isHasSavedGame())
