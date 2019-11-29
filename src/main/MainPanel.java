@@ -49,6 +49,7 @@ public class MainPanel extends JPanel {
                 //38->up  40->down 10->enter 32->space
 //                System.out.println(e.getKeyCode());
                 int code = e.getKeyCode();
+                System.out.println("code is " + code);
                 if(!inGameMode) {
                     if (code == 38)
                         usersPanel.focusDown();
@@ -58,17 +59,26 @@ public class MainPanel extends JPanel {
                         usersPanel.setSelected();
                 }
                 if(inGameMode) {
+                    if(!mainFrame.isMultiplayer() || (mainFrame.isMultiplayer() && mainFrame.isServer())) {
+                        if (code == 82) {
+                            System.out.println("you wont die anymore! :D");
+                            mainFrame.getShuttles().get(0).setUndead(true);
+                        }
+                    }
                     if (code == 27) {
-                        inGameMode = false;
-                        mainFrame.getEsqFrame().initForInGameMenu();
-                        int x = MouseInfo.getPointerInfo().getLocation().x, y = MouseInfo.getPointerInfo().getLocation().y;
-                        mainFrame.setLastMouseX(x);
-                        mainFrame.setLastMouseY(y);
-                        mainFrame.getEsqFrame().setVisible(true);
+                        mainFrame.pauseGame();
                     }
                     if(code == 10){
+                        if(!mainFrame.isMultiplayer()){
+                            shuttle.shootRocket();
+                        }else {
+                            if (mainFrame.isServer()) {
 //                        System.out.println("dooo");
-                        shuttle.shootRocket();
+                                shuttle.shootRocket();
+                            } else {
+                                mainFrame.setShouldRocketShoot(true);
+                            }
+                        }
                     }
                 }
             }
@@ -114,7 +124,9 @@ public class MainPanel extends JPanel {
                 if (drawable instanceof DataBar || drawable instanceof HeatBar)
                     drawable.draw(g2);
 //        }
-        }else{
+        }else
+            if(inGameMode)
+            {
             ArrayList<String> list;
 
 

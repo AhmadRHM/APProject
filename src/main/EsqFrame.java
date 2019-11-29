@@ -11,6 +11,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.*;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class EsqFrame extends JFrame {
     private MainFrame mainFrame;
@@ -18,7 +20,7 @@ public class EsqFrame extends JFrame {
     private final int width=800, height=500, arcw=100, arch=100;
     private JTextField usernameTextField;
     private Button okButton;
-    private Button continueButton, settingsButton, quitButton;
+    private Button continueButton, settingsButton, quitButton, addBossButton, addGroupButton;
     public EsqFrame(MainFrame mainFrame){
         super();
         this.mainFrame = mainFrame;
@@ -64,8 +66,123 @@ public class EsqFrame extends JFrame {
         return mainPanel;
     }
 
+    private RoundJTextField classNameTextField;
+    private JFileChooser fileChooser;
+
     public MainFrame getMainFrame() {
         return mainFrame;
+    }
+    public void initForAddingBoss(){
+        clear();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+
+        classNameTextField = new RoundJTextField("enter class name",15);
+        classNameTextField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                classNameTextField.setText("");
+            }
+        });
+        classNameTextField.setBackground(new Color(0, 49, 145));
+        classNameTextField.setForeground(Color.WHITE);
+        classNameTextField.setFont(new Font("ELLA", Font.PLAIN, 40));
+
+        classNameTextField.setMaximumSize(new Dimension(classNameTextField.getSize().width, 60));
+//        System.out.println(usernameTextField.getMinimumSize().height * 3);
+
+        Assets assets = mainFrame.getAssets();
+        okButton = new Button(assets.getOkButtonDefault(), assets.getOkButtonHovered(), assets.getOkButtonPressed(), mainFrame);
+        okButton.addMouseListener(new MouseListenerForButton() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int returnVal = fileChooser.showOpenDialog(mainPanel);
+                if(returnVal == JFileChooser.APPROVE_OPTION){
+                    File file = fileChooser.getSelectedFile();
+                    if(!mainFrame.isMultiplayer() || mainFrame.isServer()) {
+                        mainFrame.addBigegg(file, classNameTextField.getText());
+                    }else{
+                        mainFrame.setShouldSendBigEgg(true);
+                        MyClassLoader myClassLoader = new MyClassLoader();
+                        try {
+                            mainFrame.setData(myClassLoader.getClassData(file.toURI().toURL(), classNameTextField.getText()));
+                        } catch (MalformedURLException ex) {
+                            ex.printStackTrace();
+                        }
+                        mainFrame.setClassName(classNameTextField.getText());
+                    }
+                    setVisible(false);
+                    unPause();
+                }
+            }
+        });
+
+        fileChooser = new JFileChooser();
+
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(classNameTextField);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(okButton);
+        mainPanel.add(Box.createGlue());
+
+        revalidate();
+        repaint();
+    }
+    public void initForAddingGroup(){
+        clear();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
+
+        classNameTextField = new RoundJTextField("enter class name",15);
+        classNameTextField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                classNameTextField.setText("");
+            }
+        });
+        classNameTextField.setBackground(new Color(0, 49, 145));
+        classNameTextField.setForeground(Color.WHITE);
+        classNameTextField.setFont(new Font("ELLA", Font.PLAIN, 40));
+
+        classNameTextField.setMaximumSize(new Dimension(classNameTextField.getSize().width, 60));
+//        System.out.println(usernameTextField.getMinimumSize().height * 3);
+
+        Assets assets = mainFrame.getAssets();
+        okButton = new Button(assets.getOkButtonDefault(), assets.getOkButtonHovered(), assets.getOkButtonPressed(), mainFrame);
+        okButton.addMouseListener(new MouseListenerForButton() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int returnVal = fileChooser.showOpenDialog(mainPanel);
+                if(returnVal == JFileChooser.APPROVE_OPTION){
+                    File file = fileChooser.getSelectedFile();
+                    if(!mainFrame.isMultiplayer() || mainFrame.isServer()) {
+                        mainFrame.addChickenGroup(file, classNameTextField.getText());
+                    }else{
+                        mainFrame.setShouldSendChickenGroup(true);
+                        MyClassLoader myClassLoader = new MyClassLoader();
+                        try {
+                            mainFrame.setData(myClassLoader.getClassData(file.toURI().toURL(), classNameTextField.getText()));
+                        } catch (MalformedURLException ex) {
+                            ex.printStackTrace();
+                        }
+                        mainFrame.setClassName(classNameTextField.getText());
+                    }
+                    setVisible(false);
+                    unPause();
+                }
+            }
+        });
+
+        fileChooser = new JFileChooser();
+
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(classNameTextField);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(okButton);
+        mainPanel.add(Box.createGlue());
+
+        revalidate();
+        repaint();
     }
     public void initForGettingUser(){
         clear();
@@ -116,15 +233,23 @@ public class EsqFrame extends JFrame {
         continueButton = new Button(assets.getContinueButtonDefault(), assets.getContinueButtonHovered(), assets.getContinueButtonPressed(), mainFrame);
         settingsButton = new Button(assets.getSettingsButtonDefault(), assets.getSettingsButtonHovered(), assets.getSettingsButtonPressed(), mainFrame);
         quitButton = new Button(assets.getQuitButtonDefault(), assets.getQuitButtonHovered(), assets.getQuitButtonPressed(), mainFrame);
+        addBossButton = new Button(assets.getAddBossButtonDefault(), assets.getAddBossButtonHovered(), assets.getAddBossButtonPressed(), mainFrame);
+        addGroupButton = new Button(assets.getAddGroupButtonDefault(), assets.getAddGroupButtonHovered(), assets.getAddGroupButtonPressed(), mainFrame);
 
         continueButton.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         settingsButton.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         quitButton.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        addBossButton.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        addGroupButton.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 
         mainPanel.add(Box.createGlue());
         mainPanel.add(continueButton);
         mainPanel.add(Box.createGlue());
         mainPanel.add(settingsButton);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(addBossButton);
+        mainPanel.add(Box.createGlue());
+        mainPanel.add(addGroupButton);
         mainPanel.add(Box.createGlue());
         mainPanel.add(quitButton);
         mainPanel.add(Box.createGlue());
@@ -132,17 +257,10 @@ public class EsqFrame extends JFrame {
         continueButton.addMouseListener(new MouseListenerForButton() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                MainPanel mainPanel = mainFrame.getMainPanel();
-                mainPanel.setInGameMode(true);
-                mainFrame.getEsqFrame().setVisible(false);
-                try {
-                    MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
-//                    Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//                    mouseCorrectRobot.MoveMouseControlled((double)mainFrame.getLastMouseX()/ScreenSize.width, (double)mainFrame.getLastMouseY()/ScreenSize.height);
-                    mouseCorrectRobot.myMouseMove(mainFrame.getLastMouseX(), mainFrame.getLastMouseY());
-                } catch (AWTException ex) {
-                    ex.printStackTrace();
+                if(mainFrame.isMultiplayer() && !mainFrame.isServer()){
+                    mainFrame.setPaused(false);
                 }
+                unPause();
             }
         });
         settingsButton.addMouseListener(new MouseListenerForButton() {
@@ -161,6 +279,32 @@ public class EsqFrame extends JFrame {
                 mainFrame.getEsqFrame().setVisible(false);
             }
         });
+        addBossButton.addMouseListener(new MouseListenerForButton() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                initForAddingBoss();
+            }
+        });
+        addGroupButton.addMouseListener(new MouseListenerForButton() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                initForAddingGroup();
+            }
+        });
 
+    }
+    public void unPause(){
+        MainPanel mainPanel = mainFrame.getMainPanel();
+        mainPanel.setInGameMode(true);
+        mainFrame.setPaused(false);
+        mainFrame.getEsqFrame().setVisible(false);
+        try {
+            MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
+//                    Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//                    mouseCorrectRobot.MoveMouseControlled((double)mainFrame.getLastMouseX()/ScreenSize.width, (double)mainFrame.getLastMouseY()/ScreenSize.height);
+            mouseCorrectRobot.myMouseMove(mainFrame.getLastMouseX(), mainFrame.getLastMouseY());
+        } catch (AWTException ex) {
+            ex.printStackTrace();
+        }
     }
 }

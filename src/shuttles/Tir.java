@@ -13,9 +13,17 @@ public class Tir extends Drawable {
     private int type;
     private Assets assets;
 
-    public Tir(double x, double y, double vx, double vy, int type, int degree, double power, Assets assets){
+    public void setShooterId(int shooterId) {
+        this.shooterId = shooterId;
+    }
+
+    private int shooterId;
+    private int degree;
+
+    public Tir(double x, double y, double vx, double vy, int type, int degree, double power, Assets assets, int shooterId){
         this(x,y,vx,vy,type,degree,assets);
         this.power = power;
+        this.shooterId = shooterId;
     }
 
     @Override
@@ -51,5 +59,13 @@ public class Tir extends Drawable {
 
     public double getPower() {
         return power;
+    }
+
+    public int getDegree() {
+        return degree;
+    }
+
+    public int getShooterId() {
+        return shooterId;
     }
 }

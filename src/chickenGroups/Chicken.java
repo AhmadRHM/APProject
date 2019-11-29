@@ -45,6 +45,8 @@ public class Chicken extends Drawable {
             life = 8;
             eggSpeed = 200;
         }
+//        if(mainFrame.isMultiplayer())
+//            life *= (int) Math.sqrt(mainFrame.getPlayingUsers().size());
     }
 
     public Chicken(double x, double y, double vx, double vy, int type, int seed, int frame, MainFrame mainFrame) {

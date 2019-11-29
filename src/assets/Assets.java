@@ -35,6 +35,8 @@ public class Assets {
     private ImageIcon connectButtonDefault, connectButtonHovered, connectButtonPressed;
     private ImageIcon makegameButtonDefault, makegameButtonHovered, makegameButtonPressed;
     private ImageIcon startgameButtonDefault, startgameButtonHovered, startgameButtonPressed;
+    private ImageIcon addBossButtonDefault, addBossButtonHovered, addBossButtonPressed;
+    private ImageIcon addGroupButtonDefault, addGroupButtonHovered, addGroupButtonPressed;
 
     //Logos
     private ImageIcon chickenInvadersLogo;
@@ -937,5 +939,77 @@ public class Assets {
         if(startgameButtonPressed == null)
             setstartgameButtonPressed();
         return startgameButtonPressed;
+    }
+    private void setAddBossButtonDefault(){
+        try {
+            addBossButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/addBossButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddBossButtonDefault(){
+        if(addBossButtonDefault == null)
+            setAddBossButtonDefault();
+        return addBossButtonDefault;
+    }
+    private void setAddBossButtonHovered(){
+        try {
+            addBossButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/addBossButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddBossButtonHovered(){
+        if(addBossButtonHovered == null)
+            setAddBossButtonHovered();
+        return addBossButtonHovered;
+    }
+    private void setAddBossButtonPressed(){
+        try {
+            addBossButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/addBossButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddBossButtonPressed(){
+        if(addBossButtonPressed == null)
+            setAddBossButtonPressed();
+        return addBossButtonPressed;
+    }
+    private void setAddGroupButtonDefault(){
+        try {
+            addGroupButtonDefault= new ImageIcon(ImageIO.read(new File("assets/buttons/addGroupButton/Default.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddGroupButtonDefault(){
+        if(addGroupButtonDefault == null)
+            setAddGroupButtonDefault();
+        return addGroupButtonDefault;
+    }
+    private void setAddGroupButtonHovered(){
+        try {
+            addGroupButtonHovered= new ImageIcon(ImageIO.read(new File("assets/buttons/addGroupButton/Hovered.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddGroupButtonHovered(){
+        if(addGroupButtonHovered == null)
+            setAddGroupButtonHovered();
+        return addGroupButtonHovered;
+    }
+    private void setAddGroupButtonPressed(){
+        try {
+            addGroupButtonPressed= new ImageIcon(ImageIO.read(new File("assets/buttons/addGroupButton/Pressed.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public ImageIcon getAddGroupButtonPressed(){
+        if(addGroupButtonPressed == null)
+            setAddGroupButtonPressed();
+        return addGroupButtonPressed;
     }
 }

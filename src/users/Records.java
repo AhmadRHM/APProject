@@ -8,6 +8,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -65,7 +69,13 @@ public class Records {
             e.printStackTrace();
         }
     }
+    private final String URL="jdbc:mysql://localhost:3306/chickeninvaders";
+    private final String username = "root";
+    private final String password = "";
+    private Connection databaseConnection;
+
     public void load(){
+        /*
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         try {
@@ -77,6 +87,37 @@ public class Records {
             records = gson.fromJson(data,new TypeToken<List<Record>>(){}.getType());
             scanner.close();
         }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+         */
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        String createTableQuery = "CREATE TABLE Records(data varchar(10000))";
+        String selectQuery = "SELECT data FROM Records";
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        records = new ArrayList<Record>();
+        try{
+            databaseConnection = DriverManager.getConnection(URL, username, password);
+            Statement statement = databaseConnection.createStatement();
+            try {
+                statement.executeUpdate(createTableQuery);
+            } catch (Exception e){
+                System.out.println("problem creating database");
+            }
+
+            ResultSet resultSet = statement.executeQuery(selectQuery);
+            while(resultSet.next()){
+                String st = resultSet.getString("data");
+                Record record = gson.fromJson(st, Record.class);
+                records.add(record);
+            }
+            statement.close();
+            databaseConnection.close();
+        }catch (Exception e){
             e.printStackTrace();
         }
     }

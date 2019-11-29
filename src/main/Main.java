@@ -1,16 +1,8 @@
 package main;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import users.User;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 public class Main {
     static private MainFrame mainFramee;
+
     public static void main(String[] args) {
         MainFrame mainFrame = new MainFrame();
         mainFramee = mainFrame;

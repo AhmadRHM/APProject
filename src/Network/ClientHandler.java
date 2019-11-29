@@ -14,6 +14,11 @@ public class ClientHandler extends Thread {
     private OutputStream outputStream;
     private int id;
     private User user;
+
+    public void setSpectator(boolean spectator) {
+        isSpectator = spectator;
+    }
+
     private boolean isSpectator;
     private MainFrame mainFrame;
 
@@ -53,8 +58,48 @@ public class ClientHandler extends Thread {
             String str = scanner.next();
             if(!str.equals("move"))
                 scanner.nextLine();
-            if(str.equals("get")){
-                printer.println(mainFrame.getItems().getItemsInString(id, mainFrame));
+            if(isSpectator && (!str.equals("get") && !str.equals("gamestarted")) )
+                continue;
+            if(str.equals("sendingChickenGroup")) {
+                String className = scanner.nextLine();
+//                System.out.println("class Name : " + className);
+//                String st = scanner.nextLine();
+//                System.out.println("st is " + st);
+                int dataLen = scanner.nextInt(); scanner.nextLine();
+                byte[] data = new byte[dataLen];
+                for(int i=0; i<dataLen; i++){
+                    data[i] = scanner.nextByte();
+                    scanner.nextLine();
+                }
+                mainFrame.addChickenGroup(data, className);
+            }else if(str.equals("sendingBigEgg")) {
+                String className = scanner.nextLine();
+                int dataLen = scanner.nextInt();
+                scanner.nextLine();
+                byte[] data = new byte[dataLen];
+                for (int i = 0; i < dataLen; i++) {
+                    data[i] = scanner.nextByte();
+                    scanner.nextLine();
+                }
+                mainFrame.addBigegg(data, className);
+            }else if(str.equals("setUndead")){
+                mainFrame.getShuttle(id).setUndead(true);
+            }else if(str.equals("get")){
+                //sending info
+                if(mainFrame.isPaused())
+                    printer.println("paused");
+                else
+                    printer.println("notPaused");
+
+                if(mainFrame.isGameEnded())
+                    printer.println("gameEnded");
+                else
+                    printer.println("notEnded");
+                //sending items in mainPanel
+                if(!isSpectator)
+                    printer.println(mainFrame.getItems().getItemsInString(id, mainFrame));
+                else
+                    printer.println(mainFrame.getItems().getItemsInString(0, mainFrame));
                 printer.flush();
             }else if(str.equals("fire")){
                 mainFrame.fireShuttle(id);
@@ -66,7 +111,7 @@ public class ClientHandler extends Thread {
 //                int y = scanner.nextInt();scanner.nextLine();
                 int x = Integer.valueOf(str1), y = Integer.valueOf(str2);
                 mainFrame.moveShuttleTo(id, x, y);
-                System.out.println("moving shuttle " + id + " to " + x + " " + y);
+//                System.out.println("moving shuttle " + id + " to " + x + " " + y);
             }else if(str.equals("rocket")){
                 mainFrame.shootRocket(id);
             }else if(str.equals("gamestarted")){

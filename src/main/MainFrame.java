@@ -7,11 +7,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import overridedSwingComponents.MouseCorrectRobot;
 import shuttles.DataBar;
+import shuttles.HeatBar;
 import shuttles.Shuttle;
 import shuttles.Tir;
-import shuttles.HeatBar;
-import users.*;
 import users.MenuPanel;
+import users.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,11 +19,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Scanner;
 
 public class MainFrame extends JFrame {
@@ -35,7 +39,8 @@ public class MainFrame extends JFrame {
     private Users users;
     private Records records;
     private User user;
-    private int numberOfLevels;
+    private int numberOfLevels = 20;
+    private boolean isPaused = false, isGameEnded = false;
 
     public ArrayList<User> getPlayingUsers() {
         return playingUsers;
@@ -67,11 +72,21 @@ public class MainFrame extends JFrame {
     private long timeTextShown = -1;
     private InGameText inGameText;
     private int id;
-    private boolean isServer=false;
+    private boolean isServer = false;
     private String dataToPrint;
 
     public void setMultiplayer(boolean multiplayer) {
         isMultiplayer = multiplayer;
+    }
+
+    public void pauseGame() {
+        isPaused = true;
+        mainPanel.setInGameMode(false);
+        getEsqFrame().initForInGameMenu();
+        int x = MouseInfo.getPointerInfo().getLocation().x, y = MouseInfo.getPointerInfo().getLocation().y;
+        setLastMouseX(x);
+        setLastMouseY(y);
+        getEsqFrame().setVisible(true);
     }
 
     private boolean isMultiplayer = false;
@@ -114,7 +129,28 @@ public class MainFrame extends JFrame {
         playingUsers = new ArrayList<>();
         waitingUsers = new ArrayList<>();
         spectatingUsers = new ArrayList<>();
+
+        chickenGroups = new ArrayList<>();
+        bigEggs = new ArrayList<>();
+
+//        addChickenGroup(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\newChickenGroups"), "newChickenGroups.MarginalGroup");
+//        addChickenGroup(new File("C:\\Users\\ahmad\\Desktop\\MarginalGroup.class"), "newChickenGroups.MarginalGroup");
+
+        addChickenGroup(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\chickenGroups\\CircularGroup.class"),
+                "chickenGroups.CircularGroup");
+//        addChickenGroup(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\chickenGroups\\RectangleGroup.class"),
+//                "chickenGroups.RectangleGroup");
+//        addChickenGroup(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\chickenGroups\\RotationalGroup.class"),
+//                "chickenGroups.RotationalGroup");
+//        addChickenGroup(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\chickenGroups\\SuicideGroup.class"),
+//                "chickenGroups.SuicideGroup");
+        addBigegg(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\chickenGroups\\BigEgg.class"),
+                "chickenGroups.BigEgg");
+//        addBigegg(new File("C:\\Users\\ahmad\\IdeaProjects\\BPProject\\out\\production\\APProject\\newChickenGroups\\MarginalBigEgg.class"),
+//                "newChickenGroups.MarginalBigEgg");
+
     }
+
 
     public void setBackgroundSpeed(double backgroundSpeed) {
         this.backgroundSpeed = backgroundSpeed;
@@ -124,13 +160,54 @@ public class MainFrame extends JFrame {
         return assets;
     }
 
-    private void makeRound(int round){
-        if(round >= 21){
-            endGame(0);
+    private ArrayList<Class> chickenGroups, bigEggs;
+
+    private ChickenGroup getInstanceOfChickenGroup(Class clazz, int numberOfChickens, int type) {
+        try {
+            Constructor<ChickenGroup> constructor = null;
+            try {
+                constructor = clazz.getConstructor(int.class, int.class, MainFrame.class);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            return constructor.newInstance(numberOfChickens, type, this);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Chicken getInstanceOfBigegg(Class clazz) {
+        try {
+            Constructor<BigEgg> constructor = null;
+            try {
+                constructor = clazz.getConstructor(double.class, double.class, int.class, MainFrame.class);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            return constructor.newInstance(800, -500, 250 * (round / 5 + 1), this);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    Random random = new Random(System.currentTimeMillis());
+
+    private void makeRound(int round) {
+        if (round > numberOfLevels) {
+            endGame(1);
             return;
         }
         showText("Round " + round);
-        int type = (round-1)/5 + 1;
+        int type = (round - 1) / 5 + 1;
+        /*
         if(round % 5 == 1){
             items.add(new RectangleGroup(40, type, this));
         }else if(round % 5 == 2){
@@ -145,16 +222,71 @@ public class MainFrame extends JFrame {
             bigEgg.setNext(800, 500);
             items.add(bigEgg);
         }
+        */
+        if (round % 5 != 0) {
+            //add a chicken group
+            int id = Math.abs(random.nextInt()) % (chickenGroups.size());
+            items.add(getInstanceOfChickenGroup(chickenGroups.get(id), Math.abs(random.nextInt()) % 20 + 10, type));
+        } else {
+            int id = Math.abs(random.nextInt()) % (bigEggs.size());
+            items.add(getInstanceOfBigegg(bigEggs.get(id)));
+            System.out.println("big egg added " + id);
+        }
     }
-    private void nextRound(){
-        user.setScore(user.getScore() + user.getMoney() * 3);
-        user.setMoney(0);
-        users.save();
-        int round = user.getLastLevel();
-        user.setLastLevel(round + 1);
-        round += 2;
-        if(round % 5 == 1 && round != 1) user.setRockets(user.getRockets()+1);
+
+    private int round = -1;
+
+    private void nextRound() {
+        for (User user : playingUsers) {
+            user.setScore(user.getScore() + user.getMoney() * 3);
+            user.setMoney(0);
+        }
+        if (!isMultiplayer) {
+            users.save();
+        }
+        if (!isMultiplayer) {
+            int round = user.getLastLevel();
+            user.setLastLevel(round + 1);
+            round += 2;
+            if (round % 5 == 1 && round != 1) user.setRockets(user.getRockets() + 1);
+            this.round = round;
+        } else {
+            if (round == -1)
+                round = 0;
+            round++;
+            for (User user : playingUsers) {
+                user.setRockets(user.getRockets() + 1);
+            }
+        }
         makeRound(round);
+    }
+
+    public void addChickenGroup(File file, String className) {
+        MyClassLoader classLoader = new MyClassLoader();
+        Class clazz = classLoader.myLoadClass(file, className);
+        chickenGroups.add(clazz);
+        System.out.println("chicken group added correctly with class name " + className);
+    }
+
+    public void addChickenGroup(byte[] data, String className) {
+        MyClassLoader classLoader = new MyClassLoader();
+        Class clazz = classLoader.myLoadClass(data, className);
+        chickenGroups.add(clazz);
+        System.out.println("chicken group added correctly with class name " + className);
+    }
+
+    public void addBigegg(File file, String className) {
+        MyClassLoader classLoader = new MyClassLoader();
+        Class clazz = classLoader.myLoadClass(file, className);
+        bigEggs.add(clazz);
+        System.out.println("Big Egg added correctly with class name " + className);
+    }
+
+    public void addBigegg(byte[] data, String className) {
+        MyClassLoader classLoader = new MyClassLoader();
+        Class clazz = classLoader.myLoadClass(data, className);
+        bigEggs.add(clazz);
+        System.out.println("Big Egg added correctly with class name " + className);
     }
 
     private Thread animationThread;
@@ -167,9 +299,9 @@ public class MainFrame extends JFrame {
                 while (true) {
                     mainPanel.setYOfBackground((int) (2.5 * backgroundSpeed * delay / 5));
 
-                    if (mainPanel.isInGameMode()) {
+                    if (mainPanel.isInGameMode() && (isServer || !isMultiplayer)) {
                         //set the mouse place
-                        for(Shuttle shuttle : shuttles) {
+                        for (Shuttle shuttle : shuttles) {
                             if (shuttle.isDead()) {
                                 shuttle.setBeginingCoord();
                                 try {
@@ -184,21 +316,21 @@ public class MainFrame extends JFrame {
                         user.setTimePlayed(user.getTimePlayed() + 0.005);
                         //round check
                         boolean hasActiveChickenGroup = false;
-                        for(Drawable drawable : items.getItems()) {
-                            if (drawable instanceof ChickenGroup || drawable instanceof BigEgg)
+                        for (Drawable drawable : items.getItems()) {
+                            if (drawable instanceof ChickenGroup || drawable instanceof Chicken)
                                 hasActiveChickenGroup = true;
                         }
-                        if(!hasActiveChickenGroup)
+                        if (!hasActiveChickenGroup)
                             nextRound();
 
                         //Set text point
-                        if(setText){
-                            if(timeTextShown == -1){
+                        if (setText) {
+                            if (timeTextShown == -1) {
                                 timeTextShown = System.currentTimeMillis();
                                 inGameText = new InGameText(textToBeShown);
                                 items.add(inGameText);
                             }
-                            if(System.currentTimeMillis() - timeTextShown > 5000){
+                            if (System.currentTimeMillis() - timeTextShown > 5000) {
                                 setText = false;
                                 timeTextShown = -1;
                                 items.remove(inGameText);
@@ -210,7 +342,7 @@ public class MainFrame extends JFrame {
                         for (Drawable drawable : items.getItems()) {
                             if ((drawable instanceof Tir) || (drawable instanceof Egg) ||
                                     (drawable instanceof TirBooster) || (drawable instanceof TirChanger)
-                                    || (drawable instanceof MaxTempBooster) || (drawable instanceof Coin)){
+                                    || (drawable instanceof MaxTempBooster) || (drawable instanceof Coin)) {
                                 if (drawable.isOutOfPage())
                                     items.remove(drawable);
                             } else if (drawable instanceof ChickenGroup) {
@@ -219,12 +351,30 @@ public class MainFrame extends JFrame {
                             }
                         }
 //                            System.out.println("killing bad items finished");
+
+                        //end game option
+                        boolean hasAliveShuttle = false;
+                        for (User user : playingUsers)
+                            if (user.getLives() > 0)
+                                hasAliveShuttle = true;
+                        if (!hasAliveShuttle)
+                            endGame(2);
+
+                        for (int i = 0; i < playingUsers.size(); i++) {
+                            User user = playingUsers.get(i);
+                            if (user.getLives() <= 0) {
+                                playingUsers.remove(user);
+                                spectatingUsers.add(user);
+                                handlers.get(i).setSpectator(true);
+                                items.remove(shuttles.get(i));
+                                shuttles.remove(i);
+                            }
+                        }
                         //Update
                         for (Drawable drawable : items.getItems()) {
-                            drawable.update((double)delay/1000);
+                            drawable.update((double) delay / 1000);
                         }
 //                            System.out.println("updating finished");
-
                         //killing things! :D
                         Iterator<Drawable> chickenGroupIterator = items.getItems().iterator();
                         for (Drawable drawable : items.getItems()) {
@@ -245,7 +395,8 @@ public class MainFrame extends JFrame {
                                                     chicken.reduceLives(tir.getPower());
                                                     items.remove(tir);
                                                     if (chicken.getLife() <= 0) {
-                                                        user.setScore(user.getScore() + chicken.getType());
+                                                        getPlayingUsers().get(tir.getShooterId()).setScore(getPlayingUsers().get(tir.getShooterId()).getScore() + chicken.getType());
+//                                                        user.setScore(user.getScore() + chicken.getType());
                                                         chicken.killed();
                                                         shouldTheChickenDie = true;
 //                                                            chickenIterator.remove();
@@ -256,20 +407,20 @@ public class MainFrame extends JFrame {
                                         }
                                         //death of shuttle
 //                                            if(!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, chicken.getX(), chicken.getY(), chicken.getSize().width, chicken.getSize().height)){
-                                        for(Shuttle shuttle : shuttles) {
+                                        for (Shuttle shuttle : shuttles) {
                                             if (!shuttle.isDead() && conflict(shuttle, chicken)) {
 //                                                chickenIterator.remove();
                                                 shouldTheChickenDie = true;
                                                 shuttle.dead();
                                                 shuttleDied(shuttle.getId());
                                             }
-                                            if (shouldTheChickenDie) {
-                                                try {
-                                                    chickenIterator.remove();
-                                                    chickenGroup.removeChicken(chicken);
-                                                }catch (Exception e){
-                                                    e.printStackTrace();
-                                                }
+                                        }
+                                        if (shouldTheChickenDie) {
+                                            try {
+                                                chickenIterator.remove();
+                                                chickenGroup.removeChicken(chicken);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
                                             }
                                         }
                                     }
@@ -277,41 +428,50 @@ public class MainFrame extends JFrame {
                             } else if (drawable instanceof Egg) {
                                 Egg egg = (Egg) drawable;
 //                                    if (!shuttle.isDead() && isIn(shuttle.getX(), shuttle.getY(), shuttle.getSize().width, shuttle.getSize().height, egg.getX(), egg.getY(), egg.getSize().width, egg.getSize().height)) {
-                                for(Shuttle shuttle : shuttles) {
+                                for (Shuttle shuttle : shuttles) {
                                     if (!shuttle.isDead() && conflict(shuttle, egg)) {
                                         shuttleDied(shuttle.getId());
                                         shuttle.dead();
                                         items.remove(drawable);
                                     }
                                 }
-                            } else if(drawable instanceof  BigEgg){
-                                BigEgg bigEgg = (BigEgg)drawable;
-                                for(Drawable drwbl : items.getItems()){
-                                    if(drwbl instanceof Tir){
-                                        if(conflict(drawable, drwbl)) {
+                            } else if (drawable instanceof Chicken) {
+                                Chicken bigEgg = (Chicken) drawable;
+                                for (Drawable drwbl : items.getItems()) {
+                                    if (drwbl instanceof Tir) {
+                                        if (conflict(drawable, drwbl)) {
                                             bigEgg.reduceLives(((Tir) drwbl).getPower());
                                             items.remove(drwbl);
                                         }
-                                    }else if(drwbl instanceof Shuttle){
-                                        if(conflict(drawable, drwbl)) {
+                                    } else if (drwbl instanceof Shuttle) {
+                                        if (conflict(drawable, drwbl)) {
                                             bigEgg.reduceLives(20);
-                                            Shuttle shuttle = ((Shuttle)drwbl);
+                                            Shuttle shuttle = ((Shuttle) drwbl);
                                             shuttle.dead();
                                             shuttleDied(shuttle.getId());
                                         }
                                     }
                                 }
-                                if(bigEgg.getLife() <= 0){
+                                if (bigEgg.getLife() <= 0) {
                                     showText("Congratulations!");
                                     bigEgg.killed();
                                     items.remove(bigEgg);
+                                }
+                            } else if (drawable instanceof Tir) {
+                                Tir tir = (Tir) drawable;
+                                for (Shuttle shuttle : shuttles) {
+                                    if (!shuttle.isDead() && conflict(shuttle, tir) && tir.getShooterId() != shuttle.getId()) {
+                                        shuttle.dead();
+                                        shuttleDied(shuttle.getId());
+                                        items.remove(tir);
+                                    }
                                 }
                             }
                         }
 //                            System.out.println("killing things finished");
                         //getting boosters
                         try {
-                            for(Shuttle shuttle:shuttles) {
+                            for (Shuttle shuttle : shuttles) {
                                 if (shuttle != null && !shuttle.isDead()) {
                                     for (Drawable drawable : items.getItems()) {
                                         if (drawable.hasImage() && conflict(shuttle, drawable)) {
@@ -335,12 +495,12 @@ public class MainFrame extends JFrame {
                                     }
                                 }
                             }
-                        }catch (Exception e){
+                        } catch (Exception e) {
 
                             e.printStackTrace();
                         }
                         //getting coins
-                        for(Shuttle shuttle : shuttles) {
+                        for (Shuttle shuttle : shuttles) {
                             if (shuttle != null && !shuttle.isDead()) {
                                 for (Drawable drawable : items.getItems())
                                     if (drawable instanceof Coin && conflict(shuttle, drawable)) {
@@ -350,10 +510,10 @@ public class MainFrame extends JFrame {
                             }
                         }
                         //destroying coins
-                        for(Drawable drawable1:items.getItems())
-                            if(drawable1 instanceof Tir)
-                                for(Drawable drawable2:items.getItems())
-                                    if(drawable2 instanceof Coin && conflict(drawable1, drawable2)){
+                        for (Drawable drawable1 : items.getItems())
+                            if (drawable1 instanceof Tir)
+                                for (Drawable drawable2 : items.getItems())
+                                    if (drawable2 instanceof Coin && conflict(drawable1, drawable2)) {
                                         items.remove(drawable1);
                                         items.remove(drawable2);
                                     }
@@ -367,12 +527,15 @@ public class MainFrame extends JFrame {
             }
         });
     }
-    public User getUser(int id){
+
+    public User getUser(int id) {
         return playingUsers.get(id);
     }
-    public Shuttle getShuttle(int id){
+
+    public Shuttle getShuttle(int id) {
         return shuttles.get(id);
     }
+
     public void startServer(int maxUsers, int port) {
         isServerGameStarted = false;
         Shuttle shuttle = new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower(), 0);
@@ -389,18 +552,18 @@ public class MainFrame extends JFrame {
             @Override
             public void run() {
                 try {
-                    serverSocket =  new ServerSocket(port);
+                    serverSocket = new ServerSocket(port);
                     handlers = new ArrayList<>();
 
                     System.out.println("server is running and waiting to give service to clients");
-                    while (playingUsers.size() + waitingUsers.size() + spectatingUsers.size() < maxUsers){
+                    while (playingUsers.size() + waitingUsers.size() + spectatingUsers.size() < maxUsers) {
                         Socket socket = serverSocket.accept();
                         System.out.println("new client joined server! :D");
-                        ClientHandler handler = new ClientHandler(socket.getInputStream(),socket.getOutputStream(), playingUsers.size(),  mainPanel.getMainFrame());
+                        ClientHandler handler = new ClientHandler(socket.getInputStream(), socket.getOutputStream(), playingUsers.size(), mainPanel.getMainFrame());
                         handlers.add(handler);
                         handler.start();
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     System.out.println("problem starting server");
 
                 }
@@ -463,8 +626,33 @@ public class MainFrame extends JFrame {
 
     private ArrayList<String> tirs, chickens, bigegg, spaceships, eggs, maxtempBoosters, tirBoosters, tirChangers, coins, ingameTextes, rockets, databar, heatbar;
 
-    boolean serverStarted = false;
-    public void startClient(String ip, int port, boolean isSpectator){
+    public boolean isShouldSayPauseToServer() {
+        return shouldSayPauseToServer;
+    }
+
+    public void setShouldSayPauseToServer(boolean shouldSayPauseToServer) {
+        this.shouldSayPauseToServer = shouldSayPauseToServer;
+    }
+
+    boolean shouldSayPauseToServer = false;
+
+    public boolean isShouldSayUnpauseToServer() {
+        return shouldSayUnpauseToServer;
+    }
+
+    public void setShouldSayUnpauseToServer(boolean shouldSayUnpauseToServer) {
+        this.shouldSayUnpauseToServer = shouldSayUnpauseToServer;
+    }
+
+    private boolean shouldSayUnpauseToServer = false;
+    private boolean serverStarted = false;
+    private boolean shouldRocketShoot = false;
+    private boolean shouldSendChickenGroup = false;
+    private boolean shouldSendBigEgg = false;
+    private byte[] data;
+    private String className;
+
+    public void startClient(String ip, int port, boolean isSpectator) {
         isMultiplayer = true;
         serverStarted = false;
         tirs = new ArrayList<>();
@@ -480,7 +668,7 @@ public class MainFrame extends JFrame {
         rockets = new ArrayList<>();
         databar = new ArrayList<>();
         heatbar = new ArrayList<>();
-        try{
+        try {
             socket = new Socket(ip, port);
             System.out.println("connected to server! :))");
             PrintStream printer = new PrintStream(socket.getOutputStream());
@@ -496,63 +684,128 @@ public class MainFrame extends JFrame {
                     id = scanner.nextInt();
                     scanner.nextLine();
                     System.out.println("client id is " + id);
-                    while (true){
-                        if(serverStarted) {
+                    while (true) {
+                        if (serverStarted) {
+                            if (shouldSendChickenGroup) {
+                                shouldSendChickenGroup = false;
+                                printer.println("sendingChickenGroup");
+                                printer.println(className);
+                                printer.println(data.length);
+                                for (int i = 0; i < data.length; i++) {
+                                    printer.println(data[i]);
+                                }
+                                printer.flush();
+                            }
+                            if (shouldSendBigEgg) {
+                                shouldSendBigEgg = false;
+                                printer.println("sendingBigEgg");
+                                printer.println(className);
+                                printer.println(data.length);
+                                for (int i = 0; i < data.length; i++) {
+                                    printer.println(data[i]);
+                                }
+                                printer.flush();
+                            }
+                            if (shouldRocketShoot) {
+                                printer.println("rocket");
+                                printer.flush();
+                                shouldRocketShoot = false;
+                            }
+                            if (shouldSayPauseToServer) {
+                                shouldSayPauseToServer = false;
+                                printer.println("pause");
+                                printer.flush();
+                            }
+                            if (shouldSayUnpauseToServer) {
+                                shouldSayUnpauseToServer = false;
+                                printer.println("unpause");
+                                printer.flush();
+                            }
+
                             printer.println("get");
                             printer.flush();
+                            //getting info
+                            String info = scanner.nextLine();
+                            if (info.equals(""))
+                                info = scanner.nextLine();
+                            if (info.equals("paused")) {
+                                if (!isPaused)
+                                    pauseGame();
+                            } else {
+                                if (isPaused)
+                                    esqFrame.unPause();
+                            }
+//                            System.out.println("info is " + info);
+                            info = scanner.nextLine();
+
+//                            System.out.println("info is " + info);
+                            if (info.equals("gameEnded"))
+                                endGame(3);
+                            //getting items in mainPanel
                             int n;
                             tirs.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 tirs.add(scanner.nextLine());
                             chickens.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 chickens.add(scanner.nextLine());
                             bigegg.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 bigegg.add(scanner.nextLine());
                             spaceships.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 spaceships.add(scanner.nextLine());
                             eggs.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 eggs.add(scanner.nextLine());
                             maxtempBoosters.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++)
                                 maxtempBoosters.add(scanner.nextLine());
                             tirBoosters.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++) {
                                 tirBoosters.add(scanner.nextLine());
                             }
                             tirChangers.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++) {
                                 tirChangers.add(scanner.nextLine());
                             }
                             coins.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++) {
                                 coins.add(scanner.nextLine());
                             }
                             ingameTextes.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++) {
                                 ingameTextes.add(scanner.nextLine());
                             }
                             rockets.clear();
-                            n = scanner.nextInt();scanner.nextLine();
+                            n = scanner.nextInt();
+                            scanner.nextLine();
                             for (int i = 0; i < n; i++) {
                                 rockets.add(scanner.nextLine());
                             }
                             databar.clear();
                             heatbar.clear();
-                            n=1;
+                            n = 1;
                             for (int i = 0; i < n; i++) {
                                 databar.add(scanner.nextLine());
                             }
@@ -560,58 +813,63 @@ public class MainFrame extends JFrame {
                                 heatbar.add(scanner.nextLine());
                             mainPanel.revalidate();
                             mainPanel.repaint();
-                        }else{
+                        } else {
                             printer.println("gamestarted");
                             printer.flush();
                             String answer = scanner.nextLine();
-                            if(answer.equals("yes")) {
+                            if (answer.equals("yes")) {
                                 serverStarted = true;
+                                mainPanel.setInGameMode(true);
                                 mainPanel.clear();
 //                                System.out.println("mouse listener added to mainPanel");
-                                mainPanel.addMouseMotionListener(new MouseAdapter() {
-                                    @Override
-                                    public void mouseDragged(MouseEvent e) {
-                                        super.mouseDragged(e);
-                                        printer.println("fire");
-                                        printer.flush();
-                                        mouseMoved(e);
-                                    }
+                                if (!isSpectator) {
+                                    mainPanel.addMouseMotionListener(new MouseAdapter() {
+                                        @Override
+                                        public void mouseDragged(MouseEvent e) {
+                                            super.mouseDragged(e);
+                                            printer.println("fire");
+                                            printer.flush();
+                                            mouseMoved(e);
+                                        }
 
-                                    @Override
-                                    public void mouseMoved(MouseEvent e) {
-                                        super.mouseMoved(e);
+                                        @Override
+                                        public void mouseMoved(MouseEvent e) {
+                                            super.mouseMoved(e);
 //                                        if(mainPanel.isInGameMode()) {
                                             printer.println("move " + e.getX() + " " + e.getY());
                                             printer.flush();
 //                                        }
-                                    }
-                                });
-                                mainPanel.addMouseListener(new MouseAdapter() {
-                                    @Override
-                                    public void mousePressed(MouseEvent e) {
-                                        super.mousePressed(e);
-                                        printer.println("fire");
-                                        printer.flush();
-                                    }
-                                });
-                                mainPanel.addKeyListener(new KeyAdapter() {
-                                    @Override
-                                    public void keyPressed(KeyEvent e) {
-                                        super.keyPressed(e);
-                                        if (e.getKeyChar() == ' ') {
+                                        }
+                                    });
+                                    mainPanel.addMouseListener(new MouseAdapter() {
+                                        @Override
+                                        public void mousePressed(MouseEvent e) {
+                                            super.mousePressed(e);
                                             printer.println("fire");
                                             printer.flush();
                                         }
-                                    }
-                                });
-                            }
-                            else{
+                                    });
+                                    mainPanel.addKeyListener(new KeyAdapter() {
+                                        @Override
+                                        public void keyPressed(KeyEvent e) {
+                                            super.keyPressed(e);
+                                            if (e.getKeyChar() == ' ') {
+                                                printer.println("fire");
+                                                printer.flush();
+                                            }else if(e.getKeyChar() == 'r'){
+                                                printer.println("setUndead");
+                                                printer.flush();
+                                            }
+                                        }
+                                    });
+                                }
+                            } else {
 
                                 playingUsers = new ArrayList<>();
                                 int n = scanner.nextInt();
                                 scanner.nextLine();
 //                                System.out.println("read : " + n);
-                                for(int i=0; i<n; i++){
+                                for (int i = 0; i < n; i++) {
                                     String st = scanner.nextLine();
 //                                    System.out.println("read : " + st);
                                     User user = gson.fromJson(st, User.class);
@@ -621,7 +879,7 @@ public class MainFrame extends JFrame {
                                 spectatingUsers = new ArrayList<>();
                                 n = scanner.nextInt();
                                 scanner.nextLine();
-                                for(int i=0; i<n; i++){
+                                for (int i = 0; i < n; i++) {
                                     String st = scanner.nextLine();
                                     User user = gson.fromJson(st, User.class);
                                     spectatingUsers.add(user);
@@ -638,17 +896,18 @@ public class MainFrame extends JFrame {
                 }
             });
             thread.start();
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("problem connecting to server");
         }
     }
-    public void stopServer(){
+
+    public void stopServer() {
         System.out.println("terminating all services");
-        for(ClientHandler handler:handlers)
+        for (ClientHandler handler : handlers)
             handler.stop();
     }
 
-    public void showText(String textToBeShown){
+    public void showText(String textToBeShown) {
         this.textToBeShown = textToBeShown;
         setText = true;
     }
@@ -702,14 +961,15 @@ public class MainFrame extends JFrame {
         mainPanel.add(Box.createGlue());
     }
 
-    private boolean conflict(Drawable a, Drawable b){
-        return  isIn(a.getX(), a.getY(), a.getSize().width, a.getSize().height, b.getX(), b.getY(), b.getSize().width, b.getSize().height);
+    private boolean conflict(Drawable a, Drawable b) {
+        return isIn(a.getX(), a.getY(), a.getSize().width, a.getSize().height, b.getX(), b.getY(), b.getSize().width, b.getSize().height);
     }
+
     private boolean isIn(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2) {
         return !((x1 + w1 / 2 < x2 - w2 / 2) || (x2 + w2 / 2 < x1 - w1 / 2) || (y1 + h1 / 2 < y2 - h2 / 2) || (y2 + h2 / 2 < y1 - h1 / 2));
     }
 
-    public void initForRanking(){
+    public void initForRanking() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -717,12 +977,13 @@ public class MainFrame extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
         Ranking ranking = new Ranking(this);
         mainPanel.add(ranking);
-        for(Record record : records.getRecords()) {
+        for (Record record : records.getRecords()) {
             ranking.addRecord(record);
         }
         ranking.pack();
     }
-    public void initForGameTypePanel(){
+
+    public void initForGameTypePanel() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -733,7 +994,8 @@ public class MainFrame extends JFrame {
         mainPanel.add(gameTypePanel);
         mainPanel.add(Box.createGlue());
     }
-    public void initForPlayerTypePanel(){
+
+    public void initForPlayerTypePanel() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -750,8 +1012,9 @@ public class MainFrame extends JFrame {
     }
 
     private boolean isServerGameStarted = false;
+
     public void initForGame() {
-        if(isMultiplayer)
+        if (isMultiplayer)
             isServerGameStarted = true;
         mainPanel.clear();
         revalidate();
@@ -760,16 +1023,17 @@ public class MainFrame extends JFrame {
 //        /*
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Image image = toolkit.getImage("icons/handwriting.gif");
-        Cursor c = toolkit.createCustomCursor(image , new Point(mainPanel.getX(),
+        Cursor c = toolkit.createCustomCursor(image, new Point(mainPanel.getX(),
                 mainPanel.getY()), "img");
-        mainPanel.setCursor (c);
+        mainPanel.setCursor(c);
 //         */
 
-        if(!isMultiplayer) {
+        if (!isMultiplayer) {
             Shuttle shuttle = new Shuttle(user.getShuttleType(), assets, this, user.getFireType(), user.getFirePower(), 0);
             mainPanel.setShuttle(shuttle);
             shuttles.add(shuttle);
         }
+//        System.out.println("User " + user.getUsername() + " added");
         playingUsers.add(user);
 
         items.add(new HeatBar(this));
@@ -779,7 +1043,7 @@ public class MainFrame extends JFrame {
 
         try {
             MouseCorrectRobot mouseCorrectRobot = new MouseCorrectRobot();
-            mouseCorrectRobot.myMouseMove((int)mainPanel.getShuttle().getX(), (int)mainPanel.getShuttle().getY());
+            mouseCorrectRobot.myMouseMove((int) mainPanel.getShuttle().getX(), (int) mainPanel.getShuttle().getY());
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -789,7 +1053,7 @@ public class MainFrame extends JFrame {
 //        c.setNext(1000, 500 );
 //        items.add(new RotationalGroup(36, 1, this));
 //        this.showText("Round 1");
-        if(user.getLastLevel() != -1) {
+        if (user.getLastLevel() != -1) {
             makeRound(user.getLastLevel() + 1);
         }
 
@@ -806,7 +1070,7 @@ public class MainFrame extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                if(mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
+                if (mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
 //                    System.out.println("oooops");
                     mainPanel.getShuttle().setX(e.getX());
                     mainPanel.getShuttle().setY(e.getY());
@@ -827,12 +1091,13 @@ public class MainFrame extends JFrame {
                 mainPanel.getShuttle().fire();
             }
         });
+
         //key listener
         mainPanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                if(mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
+                if (mainPanel.isInGameMode() && !mainPanel.getShuttle().isDead()) {
                     if (e.getKeyChar() == 'a' || e.getKeyCode() == 37)
                         mainPanel.getShuttle().toLeft();
                     if (e.getKeyChar() == 's' || e.getKeyCode() == 40)
@@ -891,17 +1156,17 @@ public class MainFrame extends JFrame {
     public void rocketBoomed(int id) {
         //TODO
         System.out.println("rocket Boomeddd...!! :D");
-        for(Drawable drawable:items.getItems())
-            if(drawable instanceof ChickenGroup) {
-                for(Chicken chicken:((ChickenGroup)drawable).getChickens()) {
+        for (Drawable drawable : items.getItems())
+            if (drawable instanceof ChickenGroup) {
+                for (Chicken chicken : ((ChickenGroup) drawable).getChickens()) {
                     chicken.killed();
                     getUser(id).setScore(getUser(id).getScore() + chicken.getType());
                 }
                 items.remove(drawable);
-            }else if(drawable instanceof Egg)
+            } else if (drawable instanceof Egg)
                 items.remove(drawable);
-            else if(drawable instanceof BigEgg){
-                BigEgg bigEgg = (BigEgg)drawable;
+            else if (drawable instanceof BigEgg) {
+                BigEgg bigEgg = (BigEgg) drawable;
                 bigEgg.reduceLives(50);
 //                if(bigEgg.getLife() <= 0)
 
@@ -910,20 +1175,43 @@ public class MainFrame extends JFrame {
     }
 
     public void shuttleDied(int id) {
-        getUser(id).setLives(getUser(id).getLives() - 1);
-        if (getUser(id).getLives() == 0)
-            endGame(id);
-        user.setMoney(0);
+        if(!getShuttle(id).isUndead())
+            getUser(id).setLives(getUser(id).getLives() - 1);
+        if (getUser(id).getLives() == 0) {
+            User user = getPlayingUsers().get(id);
+            getPlayingUsers().remove(id);
+            spectatingUsers.add(user);
+        }
+//        user.setMoney(0);
+
+        getPlayingUsers().get(id).setMoney(0);
     }
 
     public void endGame(int id) {
         //TODO
-        System.out.println("game ended");
-        records.addRecord(new Record(user.getUsername(), user.getTimePlayed(), user.getLastLevel(), user.getScore()));
-        mainPanel.setInGameMode(false);
-        initForRanking();
-        repaint();
-        revalidate();
+        if (id == 1)
+            System.out.println("rounds finished");
+        else if (id == 2)
+            System.out.println("users all died");
+        else
+            System.out.println("server told me to finish");
+        System.out.println("game ending called ");
+        if (!isMultiplayer) {
+            System.out.println("game ended");
+            records.addRecord(new Record(user.getUsername(), user.getTimePlayed(), user.getLastLevel(), user.getScore()));
+            mainPanel.setInGameMode(false);
+            initForRanking();
+            repaint();
+            revalidate();
+        } else {
+            System.out.println("game ended");
+//            records.addRecord(new Record(user.getUsername(), user.getTimePlayed(), user.getLastLevel(), user.getScore()));
+            mainPanel.setInGameMode(false);
+            isGameEnded = true;
+            initForRanking();
+            repaint();
+            revalidate();
+        }
     }
 
     public int getLastMouseX() {
@@ -946,14 +1234,16 @@ public class MainFrame extends JFrame {
         return records;
     }
 
-    public void moveShuttleTo(int id, int x, int y){
+    public void moveShuttleTo(int id, int x, int y) {
         getShuttle(id).setX(x);
         getShuttle(id).setY(y);
     }
-    public void fireShuttle(int id){
+
+    public void fireShuttle(int id) {
         getShuttle(id).fire();
     }
-    public void shootRocket(int id){
+
+    public void shootRocket(int id) {
         getShuttle(id).shootRocket();
     }
 
@@ -986,6 +1276,7 @@ public class MainFrame extends JFrame {
     }
 
     private ServerDetalePanel serverDetalePanel;
+
     public void initForServerDetalePanel() {
         mainPanel.clear();
         revalidate();
@@ -999,7 +1290,8 @@ public class MainFrame extends JFrame {
         repaint();
         revalidate();
     }
-    public void initForServerDataPanel(){
+
+    public void initForServerDataPanel() {
         mainPanel.clear();
         revalidate();
         repaint();
@@ -1021,5 +1313,49 @@ public class MainFrame extends JFrame {
         mainPanel.add(Box.createGlue());
         mainPanel.add(clientDataPanel);
         mainPanel.add(Box.createGlue());
+    }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public void setPaused(boolean paused) {
+        isPaused = paused;
+    }
+
+    public boolean isGameEnded() {
+        return isGameEnded;
+    }
+
+    public void setGameEnded(boolean gameEnded) {
+        isGameEnded = gameEnded;
+    }
+
+    public boolean isServer() {
+        return isServer;
+    }
+
+    public boolean isShouldRocketShoot() {
+        return shouldRocketShoot;
+    }
+
+    public void setShouldRocketShoot(boolean shouldRocketShoot) {
+        this.shouldRocketShoot = shouldRocketShoot;
+    }
+
+    public void setShouldSendChickenGroup(boolean shouldSendChickenGroup) {
+        this.shouldSendChickenGroup = shouldSendChickenGroup;
+    }
+
+    public void setShouldSendBigEgg(boolean shouldSendBigEgg) {
+        this.shouldSendBigEgg = shouldSendBigEgg;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 }

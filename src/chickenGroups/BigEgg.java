@@ -17,6 +17,7 @@ public class BigEgg extends Chicken {
         this.life = lives;
         this.life *= (int)Math.sqrt(mainFrame.getPlayingUsers().size());
         this.setSpeed(50);
+        this.setNext(800, 500);
     }
     @Override
     protected void throwEgg(){
@@ -44,11 +45,13 @@ public class BigEgg extends Chicken {
     @Override
     public void update(double time){
         super.update(time);
+//        System.out.println("x and y " + x + " " + y + " ");
         this.image = mainFrame.getAssets().getBigEgg();
         timeModNim += time;
         if(timeModNim > 0.5){
             timeModNim -= 0.5;
-                throwEgg();        }
+                throwEgg();
+        }
     }
     @Override
     public void killed(){
